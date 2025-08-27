@@ -87,8 +87,17 @@
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
 
+  # Use gpu acceleration for GTK4 apps
+  environment.variables = {
+    GSK_RENDERER = "ngl";
+  };
+
+  # Auto login
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = "komatrich";
+  # Disable getty on tty1 to prevent conflicts with GDM auto login
+  systemd.services."getty@tty1".enable = false;
+  systemd.services."autovt@tty1".enable = false;
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -170,18 +179,18 @@
     enable = true;
     dockerCompat = true;
   };
-  
-  programs.winbox = {
-   enable = true;
-   openFirewall = true;
-   package = pkgs.winbox;
-  };
 
   programs.steam = {
     enable = true;
     remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
     dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
     localNetworkGameTransfers.openFirewall = true; # Open ports in the firewall for Steam Local Network Game Transfers
+  };
+  
+  # GSConnect
+  networking.firewall = rec {
+    allowedTCPPortRanges = [ { from = 1714; to = 1764; } ];
+    allowedUDPPortRanges = allowedTCPPortRanges;
   };
   
   programs.nix-ld.enable = true;

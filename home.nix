@@ -22,6 +22,8 @@
       pkgs.gnomeExtensions.appindicator
       pkgs.gnomeExtensions.blur-my-shell
       pkgs.gnomeExtensions.gsconnect
+
+      pkgs.unityhub
     ];
     
     programs.git = {
@@ -34,7 +36,7 @@
         init.defaultBranch = "main";
       };
     };
-    
+
     dconf = {
       enable = true;
       settings."org/gnome/shell" = {
