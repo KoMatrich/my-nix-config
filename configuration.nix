@@ -10,7 +10,10 @@
       ./hardware-configuration.nix
       ./disko-config.nix
       ./nvidia.nix
-      ./antivirus.nix
+      ./apps/antivirus.nix
+      ./apps/impermanence.nix
+      ./apps/virtualization.nix
+      ./apps/steam.nix
     ];
 
   # Bootloader.
@@ -98,6 +101,8 @@
   # Disable getty on tty1 to prevent conflicts with GDM auto login
   systemd.services."getty@tty1".enable = false;
   systemd.services."autovt@tty1".enable = false;
+  # Enable Gnome Keyring integration with SDDM
+  security.pam.services.sddm.enableGnomeKeyring = true;
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -153,8 +158,6 @@
     
     pkgs.gnome-keyring
     pkgs.gnome-settings-daemon
-    
-    pkgs.distrobox
   ];
   
   environment.gnome.excludePackages = (with pkgs; [
@@ -175,18 +178,6 @@
     totem # video player
   ]);
   
-  virtualisation.podman = {
-    enable = true;
-    dockerCompat = true;
-  };
-
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
-    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
-    localNetworkGameTransfers.openFirewall = true; # Open ports in the firewall for Steam Local Network Game Transfers
-  };
-  
   # GSConnect
   networking.firewall = rec {
     allowedTCPPortRanges = [ { from = 1714; to = 1764; } ];
@@ -200,23 +191,6 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
     
   services.thermald.enable = true;
-  
-  # https://github.com/nix-community/impermanence
-  fileSystems."/persist".neededForBoot = true;
-  environment.persistence."/persist" = {
-    hideMounts = true;
-    directories = [
-      "/var/log"
-      "/var/lib/bluetooth"
-      "/var/lib/nixos"
-      "/var/lib/systemd/coredump"
-      "/var/lib/systemd/timers"
-      "/etc/NetworkManager/system-connections"
-    ];
-    files = [
-      "/etc/machine-id"
-    ];
-  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
