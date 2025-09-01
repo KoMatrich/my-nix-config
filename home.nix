@@ -22,8 +22,11 @@
       pkgs.gnomeExtensions.appindicator
       pkgs.gnomeExtensions.blur-my-shell
       pkgs.gnomeExtensions.gsconnect
+      pkgs.gnomeExtensions.caffeine
 
       pkgs.unityhub
+      pkgs.figma-linux
+      pkgs.vue
     ];
     
     programs.git = {
@@ -45,6 +48,7 @@
           appindicator.extensionUuid
           blur-my-shell.extensionUuid
           gsconnect.extensionUuid
+          caffeine.extensionUuid
         ];
       };
     };

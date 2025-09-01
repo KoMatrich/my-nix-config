@@ -34,6 +34,11 @@
       script = "zfs rollback -r zroot/root@blank";
     };
   };
+
+  # swapDevices = [ {
+  #   device = "/swapfile";
+  #   size = 38*1024;
+  # } ];
   
   # NIXOS Boot cleanup 
   nix.gc = {
