@@ -1,4 +1,3 @@
-# https://github.com/nix-community/disko/blob/master/docs/quickstart.md
 {
   disko.devices = {
     disk = {
@@ -18,34 +17,60 @@
                 mountOptions = [ "umask=0077" ];
               };
             };
-            zfs = {
+            root = {
               size = "100%";
               content = {
                 type = "luks";
                 name = "cryptroot";
                 content = {
-                  type = "zfs";
-                  pool = "zroot";
+                  type = "btrfs";
+                  extraArgs = [ "-L" "nixos-root" ];
+                  mountOptions = [ "compress=zstd" "noatime" "ssd" "space_cache=v2" ];
+                  subvolumes = {
+                    "@root" = {
+                      mountpoint = "/";
+                    };
+                    "@nix" = {
+                      mountpoint = "/nix";
+                    };
+                    "@swap" = {
+                      mountpoint = "/swap";
+                      mountOptions = [ "noatime" "nodatacow" "nodev" "nosuid" ];
+                    };
+                    "@persist" = {
+                      mountpoint = "/persist";
+                    };
+                  };
                 };
               };
             };
           };
         };
       };
+
       data = {
         type = "disk";
         device = "/dev/sda";
         content = {
           type = "gpt";
           partitions = {
-            zfs = {
+            data = {
               size = "100%";
               content = {
                 type = "luks";
                 name = "cryptdata";
                 content = {
-                  type = "zfs";
-                  pool = "zdata";
+                  type = "btrfs";
+                  extraArgs = [ "-L" "nixos-data" ];
+                  mountOptions = [ "compress=zstd" "noatime" "ssd" "space_cache=v2" ];
+                  subvolumes = {
+                    "@home" = {
+                      mountpoint = "/home";
+                    };
+                    "@cache" = {
+                      mountpoint = "/cache";
+                    };
+                  };
                 };
               };
             };
@@ -53,64 +78,5 @@
         };
       };
     };
-    zpool = {
-      zroot = {
-        type = "zpool";
-        rootFsOptions = {
-          acltype = "posixacl";
-          canmount = "off";
-          compression = "zstd";
-          dnodesize = "auto";
-          normalization = "formD";
-          relatime = "on";
-          xattr = "sa";
-          "com.sun:auto-snapshot" = "false";
-        };
-        options.ashift = "12";
-
-        datasets = {
-          "root" = {
-            type = "zfs_fs";
-            mountpoint = "/";
-            postCreateHook = "zfs list -t snapshot -H -o name | grep -E '^zroot/root@blank$' || zfs snapshot zroot/root@blank";
-          };
-          "nix" = {
-            type = "zfs_fs";
-            mountpoint = "/nix";
-            options."com.sun:auto-snapshot" = "false";
-          };
-          "persist" = {
-            type = "zfs_fs";
-            mountpoint = "/persist";
-          };
-        };
-      };
-      zdata = {
-        type = "zpool";
-        rootFsOptions = {
-          acltype = "posixacl";
-          canmount = "off";
-          compression = "zstd";
-          dnodesize = "auto";
-          normalization = "formD";
-          relatime = "on";
-          xattr = "sa";
-          "com.sun:auto-snapshot" = "true";
-        };
-        postCreateHook = "zfs list -t snapshot -H -o name | grep -E '^zdata@blank$' || zfs snapshot zdata@blank";
-
-        datasets = {
-          "home" = {
-            type = "zfs_fs";
-            mountpoint = "/home";
-          };
-          "cache" = {
-            type = "zfs_fs";
-            mountpoint = "/cache";
-          };
-        };
-      };
-    };
   };
 }
-

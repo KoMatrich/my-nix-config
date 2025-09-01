@@ -35,10 +35,12 @@
     };
   };
 
-  # swapDevices = [ {
-  #   device = "/swapfile";
-  #   size = 38*1024;
-  # } ];
+  swapDevices = [
+    {
+      device = "/swap/swapfile";
+      size = 38*1024;
+    } 
+  ];
   
   # NIXOS Boot cleanup 
   nix.gc = {
@@ -163,6 +165,8 @@
     
     pkgs.gnome-keyring
     pkgs.gnome-settings-daemon
+
+    pkgs.pre-commit
   ];
   
   environment.gnome.excludePackages = (with pkgs; [

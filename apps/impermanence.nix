@@ -7,9 +7,11 @@
     directories = [
       "/var/log"
       "/var/lib/bluetooth"
+      "/var/lib/cups"
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
       "/var/lib/systemd/timers"
+      "/var/db/sudo/lectured"
       "/etc/NetworkManager/system-connections"
     ];
     files = [
