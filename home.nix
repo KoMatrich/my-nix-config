@@ -3,6 +3,24 @@
 {
     home.username = "komatrich";
     home.homeDirectory = "/home/komatrich";
+    
+    # Add programs from user profile to PATH
+    home.sessionPath = [
+      "$HOME/.local/bin"
+    ];
+
+    programs.bash = {
+      enable = true;
+      shellAliases = {
+        ll = "ls -la";
+        gs = "git status";
+        gd = "git diff";
+        gc = "git commit";
+        gp = "git push";
+        gl = "git pull";
+        rebuild = "sudo nixos-rebuild switch --flake /etc/nixos#default --show-trace";
+      };
+    };
 
     home.packages = [
       pkgs.vlc
@@ -10,21 +28,23 @@
       pkgs.discord
       pkgs.gimp pkgs.imagemagick
       
+      # Game development
       pkgs.godot
       pkgs.godot-mono
+      pkgs.unityhub
+      pkgs.pixelorama
       
-      pkgs.vmtouch
+      pkgs.vmtouch # Keep files in memory
       
-      pkgs.dconf2nix
+      pkgs.dconf2nix # Export and import dconf settings
       
-      pkgs.uv
+      pkgs.uv # Python manager
       
       pkgs.gnomeExtensions.appindicator
       pkgs.gnomeExtensions.blur-my-shell
       pkgs.gnomeExtensions.gsconnect
       pkgs.gnomeExtensions.caffeine
 
-      pkgs.unityhub
       pkgs.figma-linux
       pkgs.vue
     ];
@@ -63,8 +83,6 @@
       enableSshSupport = true;
       defaultCacheTtl = 1800;
     };
-    
-    programs.firefox.enable = true;
 
     # Let Home Manager install and manage itself.
     programs.home-manager.enable = true;
