@@ -48,7 +48,7 @@
       pkgs.figma-linux
       pkgs.vue
     ];
-    
+
     programs.git = {
       package = pkgs.gitAndTools.gitFull;
       enable = true;
