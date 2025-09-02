@@ -106,11 +106,18 @@
   # Auto login
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = "komatrich";
+  
   # Disable getty on tty1 to prevent conflicts with GDM auto login
   systemd.services."getty@tty1".enable = false;
   systemd.services."autovt@tty1".enable = false;
-  # Enable Gnome Keyring integration with SDDM
-  security.pam.services.sddm.enableGnomeKeyring = true;
+
+  # Enable Gnome Keyring integration with gdm
+  security.pam.services.gdm.enableGnomeKeyring = true;
+  security.pam.services.login.enableGnomeKeyring = true;
+  security.pam.services.ssh.enableGnomeKeyring = true;
+  
+  services.gnome.gnome-keyring.enable = true;
+  services.gnome.gnome-settings-daemon.enable = true;
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -172,9 +179,6 @@
     pkgs.iotop
     
     pkgs.lshw
-    
-    pkgs.gnome-keyring
-    pkgs.gnome-settings-daemon
   ];
   
   environment.gnome.excludePackages = (with pkgs; [
