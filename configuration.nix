@@ -35,6 +35,9 @@
     };
   };
 
+  # Disable NetworkManager-wait-online service to speed up boot time
+  systemd.services.NetworkManager-wait-online.enable = false;
+
   # swapDevices = [ {
   #   device = "/swapfile";
   #   size = 38*1024;
