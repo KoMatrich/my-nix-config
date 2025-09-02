@@ -124,6 +124,15 @@
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
+  # Enable Avahi for network discovery
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    openFirewall = true;
+  };
+
+  services.gvfs.enable = true;
+
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
