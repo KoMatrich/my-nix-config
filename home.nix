@@ -26,12 +26,14 @@
       pkgs.vlc
       pkgs.digikam
       pkgs.discord
-      pkgs.gimp pkgs.imagemagick
       
       # Game development
       pkgs.godot
       pkgs.godot-mono
       pkgs.unityhub
+
+      # Image editing
+      pkgs.gimp pkgs.imagemagick
       pkgs.pixelorama
       
       pkgs.vmtouch # Keep files in memory
@@ -56,7 +58,11 @@
       userName = "Martin Kocich";
       userEmail = "kocichmartin@gmail.com";
       extraConfig = {
-        init.defaultBranch = "main";
+        init.defaultBranch = "master";
+        credential.helper = "${
+            pkgs.git.override { withLibsecret = true; }
+          }/bin/git-credential-libsecret";
+        push = { autoSetupRemote = true; };
       };
     };
 
