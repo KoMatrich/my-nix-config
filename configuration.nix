@@ -14,6 +14,7 @@
       ./apps/impermanence.nix
       ./apps/virtualization.nix
       ./apps/steam.nix
+      ./apps/compatibility.nix
     ];
 
   # Bootloader.
@@ -206,10 +207,6 @@
   };
 
   hardware.xone.enable = true;
-  
-  programs.nix-ld.enable = true;
-  programs.appimage.enable = true;
-  programs.appimage.binfmt = true;
   
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
     
