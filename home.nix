@@ -45,7 +45,7 @@
       pkgs.gnomeExtensions.gsconnect
       pkgs.gnomeExtensions.caffeine
 
-      pkgs.figma-linux
+      pkgs.firefox
       pkgs.vue
     ];
 
