@@ -180,6 +180,7 @@
     pkgs.iotop
     
     pkgs.lshw
+    pkgs.nix-index
   ];
   
   environment.gnome.excludePackages = (with pkgs; [

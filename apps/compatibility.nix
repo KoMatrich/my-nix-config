@@ -5,15 +5,13 @@
   programs.appimage.enable = true;
   programs.appimage.binfmt = true;
   
-  # Automatically creates a loader in /lib/* to avoid patching stuff
-  # To disable it temporarily use
-  # unset NIX_LD
   programs.nix-ld = {
     enable = true;
     libraries = with pkgs; [
       # List by default
       zlib
       zstd
+      libgcc.lib
       stdenv.cc.cc
       curl
       openssl
@@ -42,6 +40,7 @@
       xorg.libxshmfence
       xorg.libXxf86vm
       libelf
+      wavpack
 
       # Required
       glib

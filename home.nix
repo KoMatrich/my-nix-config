@@ -26,6 +26,8 @@
       pkgs.vlc
       pkgs.digikam
       pkgs.discord
+
+      pkgs.lutris
       
       # Game development
       pkgs.godot
@@ -59,9 +61,6 @@
       userEmail = "kocichmartin@gmail.com";
       extraConfig = {
         init.defaultBranch = "master";
-        credential.helper = "${
-            pkgs.git.override { withLibsecret = true; }
-          }/bin/git-credential-libsecret";
         push = { autoSetupRemote = true; };
       };
     };
