@@ -27,7 +27,27 @@
       pkgs.digikam
       pkgs.discord
 
-      pkgs.lutris
+      pkgs.heroic
+      pkgs.prusa-slicer
+      # pkgs.jetbrains.clion
+      # pkgs.jetbrains.rider
+
+      pkgs.glm
+      pkgs.glew
+      pkgs.imgui
+      pkgs.gnumake
+      pkgs.ninja
+      pkgs.cmake
+      pkgs.gcc
+      pkgs.zip
+      pkgs.unzip
+      pkgs.gnutar
+      pkgs.python3
+      pkgs.extra-cmake-modules
+      pkgs.wayland
+      pkgs.libxkbcommon
+      pkgs.pkg-config
+
       
       # Game development
       pkgs.godot
@@ -51,6 +71,8 @@
 
       pkgs.firefox
       pkgs.vue
+
+      pkgs.ffmpeg
     ];
 
     programs.git = {

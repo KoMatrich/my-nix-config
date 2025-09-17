@@ -114,8 +114,11 @@
 
   # Enable Gnome Keyring integration with gdm
   security.pam.services.gdm.enableGnomeKeyring = true;
+  security.pam.services.lightdm.enableGnomeKeyring = true;
   security.pam.services.login.enableGnomeKeyring = true;
   security.pam.services.ssh.enableGnomeKeyring = true;
+  
+  programs.ssh.startAgent = true;
   
   services.gnome.gnome-keyring.enable = true;
   services.gnome.gnome-settings-daemon.enable = true;
