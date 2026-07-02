@@ -1,19 +1,9 @@
-# Install NIXOS
-# =============
-# Boot up live USB
-# Move all files to /tmp
-# Format disks:
-# sudo nix --experimental-features "nix-command flakes" run github:nix-community/disko/latest -- --mode destroy,format,mount /tmp/disk-config.nix
-# Regenerate config:
-# nixos-generate-config --no-filesystems --root /mnt
-# Copy files
-# cp -r /tmp/nixos /mnt/etc/nixos
-# Install
-# sudo nixos-install --flake /mnt/etc/nixos#default
-
-# Rebuild
-# =======
-# sudo nixos-rebuild switch --flake /etc/nixos#default
+# Docs
+# ====
+# docs/INSTALL.md     - full (re)install runbook (disko, ZFS, blank snapshot)
+# docs/DISK-LAYOUT.md - pools, datasets, what is wiped/persisted/replicated
+# docs/RECOVERY.md    - disk failure & file restore procedures
+# docs/CHEATSHEET.md  - daily commands and aliases (rebuild, update, fsdiff, ...)
 
 {
   inputs = {
