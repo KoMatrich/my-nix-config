@@ -10,6 +10,9 @@
       ./hardware-configuration.nix
       ./disko-config.nix
       ./nvidia.nix
+      ./system/zfs.nix
+      ./system/replication.nix
+      ./system/shell.nix
       ./apps/antivirus.nix
       ./apps/impermanence.nix
       ./apps/virtualization.nix
@@ -19,52 +22,17 @@
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  
-  boot.supportedFilesystems = [ "zfs" ];
-  boot.initrd.systemd = {
-    enable = false;
-    services.initrd-rollback-root = {
-      after = [ "initrd-decrypt-disks" "zfs-import-rpool.service" ];
-      wantedBy = [ "initrd.target" ];
-      before = [ "sysroot.mount" ];
-      path = [ pkgs.zfs ];
-      description = "Rollback root fs";
-      unitConfig.DefaultDependencies = "no";
-      serviceConfig.Type = "oneshot";
-      script = "zfs rollback -r zroot/root@blank";
-    };
-  };
 
-  swapDevices = [
-    {
-      device = "/swap/swapfile";
-      size = 38*1024;
-    } 
-  ];
-  
-  # NIXOS Boot cleanup 
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 7d";
-  };
-  
-  # NIXOS Auto system update
-  system.autoUpgrade = {
-    enable = true;
-  };
-  
   services.fwupd.enable = true;
-  
-  # Use more RAM instead DISK
-  boot.kernel.sysctl = {
-   # reduce swapping
-   "vm.swappiness" = 10;
-   # tell the kernel to use up to X% of the RAM as cache for writes and instruct kernel to use up to 50% of RAM before slowing down the process that's writing (default for dirty_background_ratio is 10).
-   "vm.dirty_ratio" = 80;
-   # Start background writeback (via writeback threads) at this percentage
-   "vm.dirty_background_ratio" = 50;
+
+  # Compressed swap in RAM; no disk swap, no hibernation.
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 75;
   };
+  # zram is faster than reclaiming page cache, so swap aggressively into it.
+  boot.kernel.sysctl."vm.swappiness" = 180;
 
   networking.hostName = "BLACK-BOX";
   networking.hostId   = "deadbeef";
@@ -133,11 +101,13 @@
     pulse.enable = true;
   };
 
-  # Define a user account
+  # User accounts. Password hashes live outside git on the persisted dataset;
+  # created during install with mkpasswd (see docs/INSTALL.md).
+  users.mutableUsers = false;
   users.users.root = {
-    hashedPassword = "$6$XQ4K/YSLv6ZtTN4s$NcKy5CZRP/RYke/LYfBuI6Oel.iq9xxrVdXkunZ/mPZbpteHOiHKa//yL6PdG0d8GE0gFEvECVYmKnwKHz2O2.";
+    hashedPasswordFile = "/persist/passwords/root";
   };
-  
+
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
 
@@ -145,7 +115,7 @@
     isNormalUser = true;
     description = "KoMatrich";
     extraGroups = [ "networkmanager" "wheel" ];
-    hashedPassword = "$6$XQ4K/YSLv6ZtTN4s$NcKy5CZRP/RYke/LYfBuI6Oel.iq9xxrVdXkunZ/mPZbpteHOiHKa//yL6PdG0d8GE0gFEvECVYmKnwKHz2O2.";
+    hashedPasswordFile = "/persist/passwords/komatrich";
   };
   home-manager.users.komatrich = import ./home.nix;
 
