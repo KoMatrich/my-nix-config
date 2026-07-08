@@ -31,7 +31,7 @@
     # be erased on the next reboot. Run it before rebooting to catch state
     # you forgot to add to apps/impermanence.nix.
     (pkgs.writeShellScriptBin "fsdiff" ''
-      exec zfs diff zroot/local/root@blank "$@"
+      zfs diff zroot/local/root@blank "$@" | grep -Ev '/tmp/' | less
     '')
   ];
 }

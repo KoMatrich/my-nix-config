@@ -21,6 +21,7 @@
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
       "/var/lib/systemd/timers"
+      "/var/lib/upower"
       "/var/db/sudo/lectured"
       "/etc/NetworkManager/system-connections"
       # ZFS keyfile for the second pool + user password hashes also live in
