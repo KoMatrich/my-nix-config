@@ -11,7 +11,11 @@
     hideMounts = true;
     directories = [
       # The system flake itself - without this the config vanishes on reboot!
-      "/etc/nixos"
+      # Owned by the user so the config can be edited and pushed without sudo
+      # (rebuilding still needs root). Ownership only applies when the
+      # directory is first created; on an existing install run once:
+      #   su -c 'chown -R komatrich:users /persist/etc/nixos'
+      { directory = "/etc/nixos"; user = "komatrich"; group = "users"; mode = "0755"; }
       "/var/log"
       "/var/lib/bluetooth"
       "/var/lib/clamav"

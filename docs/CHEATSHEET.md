@@ -14,7 +14,39 @@ Daily commands for this setup. Aliases are defined in `system/shell.nix`.
 automatically on a schedule too (`programs.nh.clean`).
 
 Editing the config: it lives in `/etc/nixos` (persisted, it's this git repo).
-Commit and push your changes — the repo is the backup of the config.
+Commit and push your changes — the repo is the backup of the config. It is
+user-owned so no sudo is needed to edit; if editing prompts for permissions,
+run the one-time `chown` from the end of [INSTALL.md](INSTALL.md).
+
+Trying a package without a rebuild (no sudo needed):
+
+```sh
+nix shell nixpkgs#htop            # temporary, gone when the shell exits
+nix run nixpkgs#cowsay -- moo     # run once without installing
+nix profile install nixpkgs#htop  # per-user, survives reboots (~/.nix-profile is on /home)
+```
+
+Once a package earns its keep, move it into the config
+(`environment.systemPackages` or `home.packages`) and `rebuild`, and remove
+the ad-hoc install with `nix profile remove`.
+
+## Passwords
+
+`users.mutableUsers = false` — **`passwd` changes are silently reverted** on
+the next boot/rebuild. The only source of truth is the hash files on the
+persisted dataset:
+
+- `/persist/passwords/komatrich` — user login **and sudo** (sudo asks for the
+  user's password)
+- `/persist/passwords/root` — root / `su`
+
+To change a password (as root — use `su` if sudo is broken):
+
+```sh
+mkpasswd -m sha-512 > /persist/passwords/komatrich   # type the new password
+chmod 400 /persist/passwords/komatrich
+nixos-rebuild switch --flake /etc/nixos#default      # or just reboot
+```
 
 ## ZFS health & snapshots
 

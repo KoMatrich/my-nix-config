@@ -95,6 +95,21 @@ mkpasswd -m sha-512 | sudo tee /mnt/persist/passwords/root > /dev/null
 sudo chmod 400 /mnt/persist/passwords/*
 ```
 
+> **⚠️ `mkpasswd` prompts only ONCE, with no confirmation** — a typo here
+> means being locked out of the user account (and sudo) after first boot.
+> Verify each hash by re-typing the password with the same salt and
+> comparing the output to the stored file (they must match exactly):
+>
+> ```sh
+> mkpasswd -m sha-512 -S "$(sudo cut -d'$' -f3 /mnt/persist/passwords/komatrich)"
+> sudo cat /mnt/persist/passwords/komatrich
+> ```
+>
+> If you get locked out anyway, it's fixable post-install with the root
+> password via `su` (see "Passwords" in CHEATSHEET.md). Note that
+> `users.mutableUsers = false` means `passwd` changes never persist — these
+> files are the only source of truth.
+
 > The hash that used to be committed in this repo's git history is burned —
 > pick **new** passwords, don't reuse the old one.
 
@@ -133,6 +148,13 @@ After ~20 minutes, confirm replication is flowing:
 ```sh
 zbackup-status
 # zstorage/backup/home and zstorage/backup/persist should list fresh snapshots
+```
+
+Make the config editable without sudo (rebuilding still needs root; the
+ownership lives on the persist dataset so this survives reboots):
+
+```sh
+sudo chown -R komatrich:users /persist/etc/nixos
 ```
 
 Then:

@@ -103,6 +103,8 @@
 
   # User accounts. Password hashes live outside git on the persisted dataset;
   # created during install with mkpasswd (see docs/INSTALL.md).
+  # NOTE: `passwd` does NOT persist with mutableUsers = false — update the
+  # hash files instead (see "Passwords" in docs/CHEATSHEET.md).
   users.mutableUsers = false;
   users.users.root = {
     hashedPasswordFile = "/persist/passwords/root";
