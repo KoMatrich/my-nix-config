@@ -17,6 +17,7 @@
       
       pkgs.dconf2nix
       
+      pkgs.claude-code
       pkgs.uv
       
       pkgs.gnomeExtensions.appindicator
