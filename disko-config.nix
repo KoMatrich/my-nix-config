@@ -154,6 +154,16 @@
               recordsize = "1M";
             };
           };
+          # ComfyUI model checkpoints: huge, re-downloadable, not replicated.
+          # Mounts on top of the /persist-backed /var/lib/comfyui bind mount.
+          "comfyui-models" = {
+            type = "zfs_fs";
+            mountpoint = "/var/lib/comfyui/models";
+            options = {
+              mountpoint = "legacy";
+              recordsize = "1M";
+            };
+          };
           # Replication targets. syncoid creates backup/home and backup/persist
           # on its first run; they receive raw (still-encrypted) streams and are
           # never mounted.

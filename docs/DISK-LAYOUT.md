@@ -27,11 +27,14 @@ Only explicitly persisted state survives.
 | Dataset | Mounted at | Fate |
 |---|---|---|
 | `zstorage/games` | `/games` | Steam library; **not** replicated (games are re-downloadable) |
+| `zstorage/comfyui-models` | `/var/lib/comfyui/models` | ComfyUI model checkpoints; **not** replicated (re-downloadable) |
 | `zstorage/backup/home` | never mounted | Encrypted replica of `zroot/safe/home` |
 | `zstorage/backup/persist` | never mounted | Encrypted replica of `zroot/safe/persist` |
 | `zstorage/reserved` | — | 20 GB emergency reservation |
 
-`/games` is mounted `nofail`: if the SSD dies, the system still boots.
+`/games` and `/var/lib/comfyui/models` are mounted `nofail`: if the SSD dies,
+the system still boots (the comfyui service then refuses to start instead of
+re-downloading models onto the NVMe).
 
 ## What survives what
 
@@ -40,7 +43,7 @@ Only explicitly persisted state survives.
 | Reboot | Everything on `/` outside persisted paths is gone (that's the point). `/home`, `/persist`, `/nix`, `/games` untouched. |
 | Accidental `rm` in /home | Restore from 15-min snapshots (see RECOVERY.md), up to 14 days back. |
 | NVMe dies | Reinstall on new disk; `/home` + `/persist` restored from `zstorage/backup/*` — at most ~15 min of work lost. Games re-download. |
-| SATA SSD dies | Nothing important lost. System runs fine; replication timers fail loudly until the disk is replaced. Games re-download. |
+| SATA SSD dies | Nothing important lost. System runs fine; replication timers fail loudly until the disk is replaced. Games and ComfyUI models re-download. |
 | Both die at once | Data gone. Keep occasional external backups for the truly irreplaceable. |
 
 ## Redundancy model

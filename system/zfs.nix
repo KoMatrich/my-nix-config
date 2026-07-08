@@ -37,8 +37,10 @@
     '';
   };
 
-  # A dead/absent SSD must not block boot; only /games and backups live there.
+  # A dead/absent SSD must not block boot; only /games, ComfyUI models and
+  # backups live there.
   fileSystems."/games".options = [ "nofail" ];
+  fileSystems."/var/lib/comfyui/models".options = [ "nofail" ];
 
   # Monthly integrity check of all data on both pools.
   services.zfs.autoScrub = {
