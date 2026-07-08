@@ -76,9 +76,6 @@
   # Disable getty on tty1 to prevent conflicts with GDM auto login
   systemd.services."getty@tty1".enable = false;
   systemd.services."autovt@tty1".enable = false;
-  # Enable Gnome Keyring integration with SDDM
-  security.pam.services.sddm.enableGnomeKeyring = true;
-
   # Configure keymap in X11
   services.xserver.xkb = {
     layout = "cz";

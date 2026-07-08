@@ -100,14 +100,20 @@ sudo chmod 400 /mnt/persist/passwords/*
 
 ## 8. Generate hardware config and install
 
+The repo must live on the **persisted** dataset: `/persist/etc/nixos`. The
+running system sees it at `/etc/nixos` via the impermanence bind mount. Do
+NOT copy it to `/mnt/etc/nixos` — that path is on the root dataset, which the
+blank-snapshot rollback erases on first boot, leaving `/etc/nixos` empty.
+
 ```sh
 sudo nixos-generate-config --no-filesystems --root /mnt
 # Compare/replace hardware-configuration.nix in the repo if the generated
 # one differs (new kernel modules etc.):
 sudo cp /mnt/etc/nixos/hardware-configuration.nix /tmp/nixos/hardware-configuration.nix
 sudo rm -rf /mnt/etc/nixos
-sudo cp -r /tmp/nixos /mnt/etc/nixos
-sudo nixos-install --flake /mnt/etc/nixos#default --no-root-passwd
+sudo mkdir -p /mnt/persist/etc
+sudo cp -r /tmp/nixos /mnt/persist/etc/nixos
+sudo nixos-install --flake /mnt/persist/etc/nixos#default --no-root-passwd
 ```
 
 ## 9. Export the pools, then reboot

@@ -9,8 +9,12 @@
   # after install or the pools will refuse to import without -f.
   # (Set in configuration.nix: networking.hostId)
 
-  # Only zroot is needed for boot; it prompts for the passphrase in initrd.
-  boot.zfs.requestEncryptionCredentials = [ "zroot" ];
+  # zroot prompts for its passphrase in initrd. zstorage is listed too so the
+  # stage-2 import service loads its key from the keyfile on /persist
+  # (keylocation=file:///persist/zfs/zstorage.key, set in INSTALL.md step 6);
+  # only the exact names listed here get load-key, so the raw-received
+  # zstorage/backup/* datasets stay locked as intended.
+  boot.zfs.requestEncryptionCredentials = [ "zroot" "zstorage" ];
   boot.zfs.forceImportRoot = false;
 
   # zstorage is imported in stage 2. Its key lives on /persist (neededForBoot,
