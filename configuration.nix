@@ -17,6 +17,7 @@
       ./apps/impermanence.nix
       ./apps/virtualization.nix
       ./apps/steam.nix
+      ./apps/comfyui.nix
     ];
 
   # Bootloader.

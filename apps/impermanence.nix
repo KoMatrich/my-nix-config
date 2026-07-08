@@ -15,6 +15,7 @@
       "/var/log"
       "/var/lib/bluetooth"
       "/var/lib/clamav"
+      "/var/lib/comfyui" # models, outputs, custom nodes (can grow large)
       "/var/lib/containers"
       "/var/lib/cups"
       "/var/lib/fwupd"

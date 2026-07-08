@@ -16,13 +16,19 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     
     impermanence.url = "github:nix-community/impermanence";
+
+    # ComfyUI with CUDA support (uses pre-built PyTorch wheels).
+    # Intentionally NOT following our nixpkgs: upstream pins nixos-unstable
+    # and its CUDA packages are built/tested against that.
+    comfyui-nix.url = "github:utensils/comfyui-nix";
   };
-  
+
   outputs = {
     nixpkgs,
     home-manager,
     impermanence,
     disko,
+    comfyui-nix,
     ...
     }:
     {
@@ -32,6 +38,7 @@
           disko.nixosModules.disko
           home-manager.nixosModules.home-manager
           impermanence.nixosModules.impermanence
+          comfyui-nix.nixosModules.default
           ./configuration.nix
         ];
       };
