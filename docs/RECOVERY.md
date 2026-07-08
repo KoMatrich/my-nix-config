@@ -3,6 +3,71 @@
 What to do when things break, from least to most severe.
 Layout reference: [DISK-LAYOUT.md](DISK-LAYOUT.md).
 
+## First boot fails / drops to emergency mode
+
+Right after an install the machine won't boot and complains about a ZFS
+service. What the messages mean:
+
+- **`cannot import 'zroot': pool was previously in use from another system`** —
+  the pools were never exported at the end of the install (INSTALL.md step 9),
+  so they still carry the live ISO's hostid and `forceImportRoot = false`
+  refuses them. (After a hostId change the message is the same — see
+  [below](#pool-wont-import-after-a-hostid-change).)
+- **`Rollback root filesystem` failed** — either the import above failed first
+  (the rollback unit only has `After=`, so it runs and fails too), or the
+  `zroot/local/root@blank` snapshot is missing.
+- **`the root account is locked`** in emergency mode — not the root cause:
+  initrd emergency access is disabled, so *any* initrd failure ends with this
+  message. Boot the live USB to diagnose.
+
+### Diagnose from the live USB
+
+Force-import once (`-f` is needed exactly because of the hostid mismatch;
+it's safe), unlock, and check everything the boot depends on:
+
+```sh
+sudo zpool import -f -N -R /mnt zroot
+sudo zpool import -f -N -R /mnt zstorage
+sudo zfs load-key zroot                          # pool passphrase
+
+zfs list -t snapshot zroot/local/root@blank      # must exist
+sudo mount -t zfs zroot/safe/persist /mnt
+ls -l /mnt/passwords/                            # root + komatrich, mode 400
+ls -l /mnt/zfs/zstorage.key                      # mode 400
+zfs get keylocation zstorage                     # file:///persist/zfs/zstorage.key
+sudo umount /mnt
+```
+
+Repairs, if a check fails:
+
+- Snapshot missing: `sudo zfs snapshot zroot/local/root@blank`. From then on
+  `/` resets to its *current* contents on every boot — that's fine, activation
+  recreates what matters.
+- Password files missing: INSTALL.md step 7 (with persist mounted as above,
+  the files go to `/mnt/passwords/`).
+- keylocation still `file:///tmp/...`: run the `zfs set` from INSTALL.md step 6.
+
+### Finish: export cleanly
+
+This is the part that actually clears the import error:
+
+```sh
+sudo zpool export zstorage
+sudo zpool export zroot
+reboot
+```
+
+A clean export removes the foreign-hostid claim. After the first successful
+boot the pools belong to the installed system's hostid and the problem can't
+recur.
+
+### Last resort
+
+If boot still fails, press `e` on the systemd-boot menu entry and append
+`zfs_force=1` to the kernel command line for a one-time forced root import,
+then diagnose from the running system with
+`journalctl -b -u zfs-import-zroot`.
+
 ## Restore a deleted/overwritten file
 
 Snapshots of `/home` and `/persist` are taken every 15 minutes.
@@ -94,7 +159,7 @@ reproducible.
 
 5. Continue INSTALL.md from step 6 (keyfile, passwords already restored
    inside /persist — check `/mnt/persist/passwords/` after mounting, then
-   steps 8–9).
+   steps 8–10).
 
 ## Both disks died
 

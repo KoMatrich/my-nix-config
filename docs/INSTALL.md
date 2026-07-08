@@ -108,12 +108,26 @@ sudo cp /mnt/etc/nixos/hardware-configuration.nix /tmp/nixos/hardware-configurat
 sudo rm -rf /mnt/etc/nixos
 sudo cp -r /tmp/nixos /mnt/etc/nixos
 sudo nixos-install --flake /mnt/etc/nixos#default --no-root-passwd
+```
+
+## 9. Export the pools, then reboot
+
+The pools are currently imported by the **live ISO's random hostid**, not the
+installed system's (`networking.hostId = "deadbeef"`). Without a clean export,
+the first boot refuses to import `zroot` ("pool was previously in use from
+another system" — `forceImportRoot` is off) and drops into a locked emergency
+console. **Do not skip this:**
+
+```sh
+sudo umount -R /mnt
+sudo zpool export -a
 reboot
 ```
 
-At boot you'll be prompted once for the ZFS passphrase.
+At boot you'll be prompted once for the ZFS passphrase. If boot fails anyway,
+see ["First boot fails" in RECOVERY.md](RECOVERY.md#first-boot-fails--drops-to-emergency-mode).
 
-## 9. Post-install checks
+## 10. Post-install checks
 
 ```sh
 zpool status -x                       # "all pools are healthy"
