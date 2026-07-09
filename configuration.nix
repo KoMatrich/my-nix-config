@@ -10,6 +10,9 @@
       ./hardware-configuration.nix
       ./disko-config.nix
       ./nvidia.nix
+      # Desktop environment: import exactly ONE of these.
+      ./desktop/gnome.nix
+      # ./desktop/hyprland.nix
       ./system/zfs.nix
       ./system/replication.nix
       ./system/shell.nix
@@ -62,11 +65,10 @@
   # Enable the X11 windowing system.
   services.xserver.enable = true;
 
-  # Enable the GNOME Desktop Environment.
+  # Display manager, shared by both desktop environments (see desktop/).
   services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
 
-  # Use gpu acceleration for GTK4 apps
+  # Use gpu acceleration for GTK4 apps (NVIDIA workaround, desktop-agnostic)
   environment.variables = {
     GSK_RENDERER = "ngl";
   };
@@ -130,37 +132,10 @@
     pkgs.iotop
     
     pkgs.lshw
-    
-    pkgs.gnome-keyring
-    pkgs.gnome-settings-daemon
 
     pkgs.pre-commit
   ];
-  
-  environment.gnome.excludePackages = (with pkgs; [
-    atomix # puzzle game
-    cheese # webcam tool
-    # epiphany # web browser
-    # evince # document viewer
-    geary # email reader
-    # gedit # text editor
-    # gnome-characters
-    # gnome-music
-    # gnome-photos
-    # gnome-terminal
-    gnome-tour
-    hitori # sudoku game
-    iagno # go game
-    tali # poker game
-    totem # video player
-  ]);
-  
-  # GSConnect
-  networking.firewall = rec {
-    allowedTCPPortRanges = [ { from = 1714; to = 1764; } ];
-    allowedUDPPortRanges = allowedTCPPortRanges;
-  };
-  
+
   programs.nix-ld.enable = true;
   programs.appimage.enable = true;
   programs.appimage.binfmt = true;

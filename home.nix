@@ -14,16 +14,9 @@
       pkgs.godot-mono
       
       pkgs.vmtouch
-      
-      pkgs.dconf2nix
-      
+
       pkgs.claude-code
       pkgs.uv
-      
-      pkgs.gnomeExtensions.appindicator
-      pkgs.gnomeExtensions.blur-my-shell
-      pkgs.gnomeExtensions.gsconnect
-      pkgs.gnomeExtensions.caffeine
 
       pkgs.unityhub
       pkgs.figma-linux
@@ -38,19 +31,6 @@
       userEmail = "kocichmartin@gmail.com";
       extraConfig = {
         init.defaultBranch = "main";
-      };
-    };
-
-    dconf = {
-      enable = true;
-      settings."org/gnome/shell" = {
-        disable-user-extensions = false;
-        enabled-extensions = with pkgs.gnomeExtensions; [
-          appindicator.extensionUuid
-          blur-my-shell.extensionUuid
-          gsconnect.extensionUuid
-          caffeine.extensionUuid
-        ];
       };
     };
 
