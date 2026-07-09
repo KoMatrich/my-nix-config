@@ -15,6 +15,7 @@
       
       pkgs.vmtouch
 
+      pkgs.prusa-slicer
       pkgs.claude-code
       pkgs.uv
 

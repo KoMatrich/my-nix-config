@@ -13,6 +13,10 @@
   # Session GDM autologin lands in ("gnome" = the Wayland session).
   services.displayManager.defaultSession = "gnome";
 
+  # Prevent lock after unlock
+  security.pam.services.gdm.enableGnomeKeyring = true;
+  security.pam.services.gdm-password.enableGnomeKeyring = true;
+
   environment.systemPackages = with pkgs; [
     pkgs.gnome-keyring
     pkgs.gnome-settings-daemon

@@ -20,7 +20,7 @@
       ./apps/impermanence.nix
       ./apps/virtualization.nix
       ./apps/steam.nix
-      ./apps/comfyui.nix
+      # ./apps/comfyui.nix
     ];
 
   # Bootloader.
@@ -69,6 +69,7 @@
   services.xserver.displayManager.gdm.enable = true;
 
   # Use gpu acceleration for GTK4 apps (NVIDIA workaround, desktop-agnostic)
+  environment.localBinInPath = true;
   environment.variables = {
     GSK_RENDERER = "ngl";
   };
