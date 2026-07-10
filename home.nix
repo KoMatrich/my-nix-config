@@ -25,12 +25,12 @@
     ];
     
     programs.git = {
-      package = pkgs.gitAndTools.gitFull;
+      package = pkgs.gitFull;
       enable = true;
       lfs.enable = true;
-      userName = "Martin Kocich";
-      userEmail = "kocichmartin@gmail.com";
-      extraConfig = {
+      settings = {
+        user.name = "Martin Kocich";
+        user.email = "kocichmartin@gmail.com";
         init.defaultBranch = "main";
       };
     };
@@ -47,6 +47,8 @@
     };
     
     programs.firefox.enable = true;
+    # Keep the pre-26.05 profile location; the existing profile lives here.
+    programs.firefox.configPath = ".mozilla/firefox";
 
     # Let Home Manager install and manage itself.
     programs.home-manager.enable = true;

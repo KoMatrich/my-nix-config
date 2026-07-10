@@ -8,7 +8,7 @@
 
 {
   # Enable the GNOME Desktop Environment.
-  services.xserver.desktopManager.gnome.enable = true;
+  services.desktopManager.gnome.enable = true;
 
   # Session GDM autologin lands in ("gnome" = the Wayland session).
   services.displayManager.defaultSession = "gnome";

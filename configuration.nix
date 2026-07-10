@@ -66,7 +66,7 @@
   services.xserver.enable = true;
 
   # Display manager, shared by both desktop environments (see desktop/).
-  services.xserver.displayManager.gdm.enable = true;
+  services.displayManager.gdm.enable = true;
 
   # Use gpu acceleration for GTK4 apps (NVIDIA workaround, desktop-agnostic)
   environment.localBinInPath = true;
