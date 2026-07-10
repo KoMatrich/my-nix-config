@@ -67,6 +67,25 @@ zpool status              # shows last scrub result / progress
 sudo zpool scrub zroot    # start one manually
 ```
 
+## Hyprland keys
+
+Defined in `desktop/hyprland.nix`. `Super` = Windows key.
+
+| Keys | Action |
+|---|---|
+| `Super+Return` | Terminal (kitty) |
+| `Super+D` | App launcher (wofi) |
+| `Super+V` | Clipboard history |
+| `Super+Q` | Close window |
+| `Super+F` | Fullscreen |
+| `Super+Shift+Space` | Toggle floating |
+| `Super+1..9` | Switch workspace (`+Shift` = move window there) |
+| `Super+arrows` | Move focus (`+Shift` = move window, `+Ctrl` = resize) |
+| `Super+mouse drag` | Move window (right button = resize) |
+| `Print` | Screenshot region → clipboard (`Shift+Print` = full screen → ~/Pictures) |
+| `Super+L` | Lock screen |
+| `Super+M` | Exit Hyprland session |
+
 ## Steam / games
 
 Library lives at `/games` (512 GB SSD). Add it once via

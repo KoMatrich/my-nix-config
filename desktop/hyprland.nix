@@ -197,6 +197,24 @@
         };
       };
 
+      # dbus-broker refuses to D-Bus-activate mako (its service file
+      # fr.emersion.mako.service is not named after org.freedesktop.
+      # Notifications), so start it explicitly with the session.
+      systemd.user.services.mako = {
+        Unit = {
+          Description = "Mako notification daemon";
+          PartOf = [ "graphical-session.target" ];
+          After = [ "graphical-session.target" ];
+        };
+        Service = {
+          Type = "dbus";
+          BusName = "org.freedesktop.Notifications";
+          ExecStart = "${pkgs.mako}/bin/mako";
+          Restart = "on-failure";
+        };
+        Install.WantedBy = [ "graphical-session.target" ];
+      };
+
       programs.waybar = {
         enable = true;
         # Start via graphical-session.target instead of exec-once so it gets
@@ -295,10 +313,14 @@
 
       services.hyprpaper = {
         enable = true;
+        # hyprpaper 0.8 format: no more preload, wallpaper is a block.
         settings = {
           splash = false;
-          preload = [ wallpaper ];
-          wallpaper = [ ",${wallpaper}" ];  # all monitors
+          wallpaper = {
+            monitor = "";  # all monitors
+            path = wallpaper;
+            fit_mode = "cover";
+          };
         };
       };
 
@@ -453,7 +475,6 @@
             disable_hyprland_logo = true;
             disable_splash_rendering = true;
             force_default_wallpaper = 0;
-            vfr = true;  # lower GPU load when idle
           };
 
           exec-once = [
@@ -499,28 +520,21 @@
             # Full screen to ~/Pictures
             "SHIFT, Print, exec, grim ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png"
 
-            # Workspaces
-            "$mod, 1, workspace, 1"
-            "$mod, 2, workspace, 2"
-            "$mod, 3, workspace, 3"
-            "$mod, 4, workspace, 4"
-            "$mod, 5, workspace, 5"
-            "$mod, 6, workspace, 6"
-            "$mod, 7, workspace, 7"
-            "$mod, 8, workspace, 8"
-            "$mod, 9, workspace, 9"
-            "$mod SHIFT, 1, movetoworkspace, 1"
-            "$mod SHIFT, 2, movetoworkspace, 2"
-            "$mod SHIFT, 3, movetoworkspace, 3"
-            "$mod SHIFT, 4, movetoworkspace, 4"
-            "$mod SHIFT, 5, movetoworkspace, 5"
-            "$mod SHIFT, 6, movetoworkspace, 6"
-            "$mod SHIFT, 7, movetoworkspace, 7"
-            "$mod SHIFT, 8, movetoworkspace, 8"
-            "$mod SHIFT, 9, movetoworkspace, 9"
+            # Workspaces (below, via keycodes)
             "$mod, mouse_down, workspace, e+1"
             "$mod, mouse_up, workspace, e-1"
-          ];
+          ]
+          # Workspace switching by keycode (code:10-18 = number row 1-9):
+          # on the cz layout the unshifted number row emits +ěščřžýáíé, so
+          # keysym binds like "$mod, 1" would never match.
+          ++ builtins.concatLists (builtins.genList (i:
+            let
+              ws = toString (i + 1);
+              key = "code:${toString (i + 10)}";
+            in [
+              "$mod, ${key}, workspace, ${ws}"
+              "$mod SHIFT, ${key}, movetoworkspace, ${ws}"
+            ]) 9);
 
           # Drag windows with the mouse (272 = left button, 273 = right).
           bindm = [

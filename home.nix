@@ -22,6 +22,7 @@
       pkgs.unityhub
       pkgs.figma-linux
       pkgs.vue
+      pkgs.obsidian
     ];
     
     programs.git = {

@@ -10,9 +10,6 @@
       ./hardware-configuration.nix
       ./disko-config.nix
       ./nvidia.nix
-      # Desktop environment: import exactly ONE of these.
-      # ./desktop/gnome.nix
-      ./desktop/hyprland.nix
       ./system/zfs.nix
       ./system/replication.nix
       ./system/shell.nix
@@ -21,6 +18,10 @@
       ./apps/virtualization.nix
       ./apps/steam.nix
       # ./apps/comfyui.nix
+      
+      # Desktop environment: import exactly ONE of these.
+      ./desktop/gnome.nix
+      # ./desktop/hyprland.nix
     ];
 
   # Bootloader.
