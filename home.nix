@@ -14,16 +14,10 @@
       pkgs.godot-mono
       
       pkgs.vmtouch
-      
-      pkgs.dconf2nix
-      
+
+      pkgs.prusa-slicer
       pkgs.claude-code
       pkgs.uv
-      
-      pkgs.gnomeExtensions.appindicator
-      pkgs.gnomeExtensions.blur-my-shell
-      pkgs.gnomeExtensions.gsconnect
-      pkgs.gnomeExtensions.caffeine
 
       pkgs.unityhub
       pkgs.figma-linux
@@ -31,26 +25,13 @@
     ];
     
     programs.git = {
-      package = pkgs.gitAndTools.gitFull;
+      package = pkgs.gitFull;
       enable = true;
       lfs.enable = true;
-      userName = "Martin Kocich";
-      userEmail = "kocichmartin@gmail.com";
-      extraConfig = {
+      settings = {
+        user.name = "Martin Kocich";
+        user.email = "kocichmartin@gmail.com";
         init.defaultBranch = "main";
-      };
-    };
-
-    dconf = {
-      enable = true;
-      settings."org/gnome/shell" = {
-        disable-user-extensions = false;
-        enabled-extensions = with pkgs.gnomeExtensions; [
-          appindicator.extensionUuid
-          blur-my-shell.extensionUuid
-          gsconnect.extensionUuid
-          caffeine.extensionUuid
-        ];
       };
     };
 
@@ -66,6 +47,8 @@
     };
     
     programs.firefox.enable = true;
+    # Keep the pre-26.05 profile location; the existing profile lives here.
+    programs.firefox.configPath = ".mozilla/firefox";
 
     # Let Home Manager install and manage itself.
     programs.home-manager.enable = true;
