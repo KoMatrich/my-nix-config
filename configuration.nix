@@ -11,8 +11,8 @@
       ./disko-config.nix
       ./nvidia.nix
       # Desktop environment: import exactly ONE of these.
-      ./desktop/gnome.nix
-      # ./desktop/hyprland.nix
+      # ./desktop/gnome.nix
+      ./desktop/hyprland.nix
       ./system/zfs.nix
       ./system/replication.nix
       ./system/shell.nix
