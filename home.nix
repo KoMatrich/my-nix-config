@@ -16,8 +16,10 @@
       pkgs.vmtouch
 
       pkgs.prusa-slicer
+
       pkgs.claude-code
-      pkgs.uv
+      pkgs.jq
+      pkgs.libnotify
 
       pkgs.unityhub
       pkgs.figma-linux

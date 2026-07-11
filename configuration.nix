@@ -116,7 +116,7 @@
   users.users.komatrich = {
     isNormalUser = true;
     description = "KoMatrich";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "dialout" ];
     hashedPasswordFile = "/persist/passwords/komatrich";
   };
   home-manager.users.komatrich = import ./home.nix;
