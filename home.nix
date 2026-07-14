@@ -9,10 +9,7 @@
       pkgs.digikam
       pkgs.discord
       pkgs.gimp pkgs.imagemagick
-      
-      pkgs.godot
-      pkgs.godot-mono
-      
+
       pkgs.vmtouch
 
       pkgs.prusa-slicer
@@ -21,9 +18,13 @@
       pkgs.jq
       pkgs.libnotify
 
+      pkgs.chromium
+
       pkgs.unityhub
       pkgs.figma-linux
       pkgs.vue
+
+      pkgs.zotero
       pkgs.obsidian
     ];
     

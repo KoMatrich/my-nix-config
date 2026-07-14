@@ -128,6 +128,7 @@
   environment.systemPackages = with pkgs; [
     pkgs.git
     pkgs.git-lfs
+    pkgs.gh
     
     pkgs.htop
     pkgs.iftop

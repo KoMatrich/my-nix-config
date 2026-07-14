@@ -10,6 +10,10 @@
   # Enable the GNOME Desktop Environment.
   services.desktopManager.gnome.enable = true;
 
+  # Google Drive in Nautilus requires both of these.
+  services.gnome.gnome-online-accounts.enable = true;
+  services.gvfs.enable = true;
+
   # Session GDM autologin lands in ("gnome" = the Wayland session).
   services.displayManager.defaultSession = "gnome";
 
