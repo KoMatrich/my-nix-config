@@ -16,7 +16,7 @@
       "/var/lib/bluetooth"
       "/var/lib/clamav"
       "/var/lib/comfyui" # outputs, custom nodes, workflows (models are on zstorage/comfyui-models)
-      "/var/lib/containers"
+      "/var/lib/docker"
       "/var/lib/cups"
       "/var/lib/fwupd"
       "/var/lib/nixos"

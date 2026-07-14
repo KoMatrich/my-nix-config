@@ -1,11 +1,12 @@
 { config, lib, pkgs, ... }:
 {
-  virtualisation.podman = {
+  virtualisation.docker = {
     enable = true;
-    dockerCompat = true;
+    enableOnBoot = true;
   };
 
   environment.systemPackages = with pkgs; [
-    pkgs.distrobox
+    docker-compose
+    distrobox
   ];
 }
