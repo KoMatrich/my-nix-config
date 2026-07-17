@@ -1,6 +1,10 @@
 # Cheatsheet
 
-Daily commands for this setup. Aliases are defined in `system/shell.nix`.
+Daily commands for this setup. Aliases are defined in `system/shell.nix`;
+run `cheat` in a terminal for a quick summary of them.
+
+The default shell is zsh with oh-my-zsh (plugins: `git`, `sudo`, `z`,
+`extract`) plus autosuggestions and syntax highlighting.
 
 ## System management
 
