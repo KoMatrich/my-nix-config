@@ -1,8 +1,9 @@
 { config, lib, pkgs, ... }:
 {
   # Game library lives on the big/slow SSD (zstorage/games -> /games).
+  # /games is a general container: Steam uses /games/Steam, Heroic uses /games/Heroic.
   # One-time setup after install: Steam -> Settings -> Storage -> Add Drive
-  # -> /games (the choice is stored in ~/.steam, which is persisted).
+  # -> /games/Steam (the choice is stored in ~/.steam, which is persisted).
   systemd.tmpfiles.rules = [
     "z /games 0775 komatrich users -"
   ];
