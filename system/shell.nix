@@ -3,6 +3,11 @@
 # the full command reference lives in docs/CHEATSHEET.md.
 { config, lib, pkgs, ... }:
 let
+  # Shared by the `gc` alias and the automatic clean timer so they can't
+  # drift. --no-direnv: dev shell gcroots are managed by the 30-day timer
+  # in apps/devshells.nix, not by nh's 7-day window.
+  gcArgs = "--keep-since 7d --keep 5 --no-direnv";
+
   # Single source of truth: the shell aliases and the `cheat` help text are
   # both generated from this list, so the help cannot drift out of sync.
   aliasGroups = [
@@ -11,7 +16,13 @@ let
       aliases = [
         { name = "rebuild"; cmd = "nh os switch"; desc = "Apply config changes from /etc/nixos"; }
         { name = "update"; cmd = "nh os switch --update"; desc = "Update flake inputs + rebuild"; }
-        { name = "gc"; cmd = "nh clean all --keep-since 7d --keep 5"; desc = "Delete old generations (keeps 7 days / last 5)"; }
+        { name = "gc"; cmd = "nh clean all ${gcArgs}"; desc = "Delete old generations (keeps 7 days / last 5; dev shells expire separately after 30 days)"; }
+      ];
+    }
+    {
+      title = "Dev shells (direnv)";
+      aliases = [
+        { name = "devshell-clean"; cmd = "systemctl --user start devshell-cleanup.service node-modules-cleanup.service && journalctl --user -u devshell-cleanup -u node-modules-cleanup --since -10min --no-pager"; desc = "Run the 30d shell / 60d node_modules cleanup now and show what was deleted"; }
       ];
     }
     {
@@ -27,6 +38,8 @@ let
   # Standalone scripts installed below; listed in `cheat` only.
   extraCommands = [
     { name = "fsdiff"; desc = "Every file on / that will be ERASED on next reboot"; }
+    { name = "devshells"; desc = "List cached dev shells with last-used age and closure size"; }
+    { name = "mkenvrc"; desc = "Create .envrc in the current project + direnv allow (makes its dev shell persistent)"; }
     { name = "cheat"; desc = "This help"; }
   ];
 
@@ -50,7 +63,7 @@ in
     flake = "/etc/nixos";
     clean = {
       enable = true;
-      extraArgs = "--keep-since 7d --keep 5";
+      extraArgs = gcArgs;
     };
   };
 

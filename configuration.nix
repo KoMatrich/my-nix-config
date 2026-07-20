@@ -17,6 +17,8 @@
       ./apps/impermanence.nix
       ./apps/virtualization.nix
       ./apps/steam.nix
+      ./apps/heroic.nix
+      ./apps/devshells.nix
       # ./apps/comfyui.nix
       
       # Desktop environment: import exactly ONE of these.
@@ -137,14 +139,19 @@
     pkgs.git
     pkgs.git-lfs
     pkgs.gh
-    
+
     pkgs.htop
     pkgs.iftop
     pkgs.iotop
-    
+
     pkgs.lshw
 
     pkgs.pre-commit
+
+    # PulseAudio CLI tools (pactl) for Steam audio device queries.
+    # PipeWire's pulse compatibility layer provides the socket; this
+    # provides only the client binary, not a conflicting daemon.
+    pkgs.pulseaudio
   ];
 
   programs.nix-ld.enable = true;

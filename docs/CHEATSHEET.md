@@ -12,13 +12,31 @@ The default shell is zsh with oh-my-zsh (plugins: `git`, `sudo`, `z`,
 |---|---|---|
 | `rebuild` | `nh os switch` | Apply config changes from `/etc/nixos` |
 | `update` | `nh os switch --update` | Update flake inputs + rebuild |
-| `gc` | `nh clean all ...` | Delete old generations (keeps 7 days / last 5) |
+| `gc` | `nh clean all ...` | Delete old generations (keeps 7 days / last 5; dev shells expire separately, see below) |
 
 `nh` also shows a package diff on every rebuild. Old generations are cleaned
 automatically on a schedule too (`programs.nh.clean`).
 
 Editing the config: it lives in `/etc/nixos` (persisted, it's this git repo).
 Commit and push your changes — the repo is the backup of the config.
+
+## Dev shells (direnv)
+
+Dev shells are cached and GC-rooted per project via nix-direnv, so they
+survive reboots and `gc` and keep working offline. A shell only expires
+after **30 days without use** (every `cd` into the project resets the
+clock); `node_modules` of npm projects untouched for **60 days** are also
+auto-deleted (both run as weekly user timers, see `apps/devshells.nix`).
+
+| Command | What it does |
+|---|---|
+| `mkenvrc` | One-time project setup: writes `.envrc` (`use flake` / `use nix`) + `direnv allow` |
+| `devshells` | List cached dev shells with last-used age and closure size |
+| `devshell-clean` | Run the 30d/60d cleanup now and show what was deleted |
+
+Note: only direnv-entered shells are protected — a plain `nix develop` in a
+project without `.envrc` still creates no GC root. Run `mkenvrc` once per
+project you care about.
 
 ## ZFS health & snapshots
 
