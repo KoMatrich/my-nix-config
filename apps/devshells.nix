@@ -128,6 +128,81 @@ in
       else echo "use flake" > .envrc; echo "note: no flake.nix/shell.nix here yet" >&2; fi
       direnv allow
     '')
+    # Guided wizard: scaffold flake.nix for a dev shell, then create .envrc if needed.
+    (pkgs.writeShellScriptBin "mkflake" ''
+      set -euo pipefail
+
+      if [ -f flake.nix ]; then
+        printf 'flake.nix already exists\n' >&2; exit 1
+      fi
+
+      default_name=$(basename "$PWD")
+      printf 'Project name [%s]: ' "$default_name"
+      read -r proj_name
+      proj_name=''${proj_name:-$default_name}
+
+      printf '\nTech stack:\n'
+      printf '  1) Rust\n  2) Go\n  3) Python 3\n  4) Node.js / TypeScript\n'
+      printf '  5) Java\n  6) C / C++\n  7) Generic (no language preset)\n'
+      printf 'Choice [7]: '
+      read -r choice
+      choice=''${choice:-7}
+
+      case "$choice" in
+        1) lang_pkgs="rustc cargo rust-analyzer clippy rustfmt" ;;
+        2) lang_pkgs="go gopls" ;;
+        3) lang_pkgs="python3 python3Packages.pip" ;;
+        4) lang_pkgs="nodejs_22 typescript nodePackages.typescript-language-server" ;;
+        5) lang_pkgs="jdk17 gradle" ;;
+        6) lang_pkgs="gcc gnumake cmake pkg-config" ;;
+        *) lang_pkgs="" ;;
+      esac
+
+      printf 'Extra packages (space-separated nix attrs, enter to skip): '
+      read -r extra_pkgs
+
+      all_pkgs=$(printf '%s\n%s\n' "$lang_pkgs" "$extra_pkgs" \
+        | tr ' ' '\n' | sed '/^[[:space:]]*$/d' | sort -u)
+
+      {
+        echo '{'
+        echo "  description = \"$proj_name dev shell\";"
+        echo ""
+        echo '  inputs = {'
+        echo '    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";'
+        echo '    flake-utils.url = "github:numtide/flake-utils";'
+        echo '  };'
+        echo ""
+        echo '  outputs = { self, nixpkgs, flake-utils }:'
+        echo '    flake-utils.lib.eachDefaultSystem (system:'
+        echo '      let pkgs = nixpkgs.legacyPackages.''${system};'
+        echo '      in {'
+        echo '        devShells.default = pkgs.mkShell {'
+        echo '          packages = with pkgs; ['
+        if [ -n "$all_pkgs" ]; then
+          printf '%s\n' "$all_pkgs" | sed 's/^/            /'
+        else
+          echo '            # add packages here, e.g. git curl jq'
+        fi
+        echo '          ];'
+        echo '        };'
+        echo '      });'
+        echo '}'
+      } > flake.nix
+
+      printf 'Created flake.nix\n'
+
+      if [ ! -e .envrc ]; then
+        echo 'use flake' > .envrc
+        direnv allow
+        printf 'Created .envrc + direnv allow\n'
+      else
+        printf '.envrc already exists, not modified\n'
+      fi
+
+      printf "\nDone. Run 'direnv reload' or re-enter the directory to build the shell.\n"
+      printf "Edit flake.nix to add/remove packages, then run 'direnv reload'.\n"
+    '')
   ];
 
   home-manager.users.komatrich = {

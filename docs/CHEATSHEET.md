@@ -30,13 +30,16 @@ auto-deleted (both run as weekly user timers, see `apps/devshells.nix`).
 
 | Command | What it does |
 |---|---|
-| `mkenvrc` | One-time project setup: writes `.envrc` (`use flake` / `use nix`) + `direnv allow` |
+| `mkflake` | Guided wizard: scaffold `flake.nix` (pick language + packages) + `.envrc` for a new project |
+| `mkenvrc` | Add `.envrc` to an existing project that already has a `flake.nix` / `shell.nix` + `direnv allow` |
 | `devshells` | List cached dev shells with last-used age and closure size |
 | `devshell-clean` | Run the 30d/60d cleanup now and show what was deleted |
 
+**Starting from scratch?** Run `mkflake` — it creates both `flake.nix` and `.envrc` in one go.
+**Already have a `flake.nix`?** Run `mkenvrc` to just add `.envrc` + `direnv allow`.
+
 Note: only direnv-entered shells are protected — a plain `nix develop` in a
-project without `.envrc` still creates no GC root. Run `mkenvrc` once per
-project you care about.
+project without `.envrc` still creates no GC root.
 
 ## ZFS health & snapshots
 

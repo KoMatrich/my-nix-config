@@ -40,6 +40,7 @@ let
     { name = "fsdiff"; desc = "Every file on / that will be ERASED on next reboot"; }
     { name = "devshells"; desc = "List cached dev shells with last-used age and closure size"; }
     { name = "mkenvrc"; desc = "Create .envrc in the current project + direnv allow (makes its dev shell persistent)"; }
+    { name = "mkflake"; desc = "Guided wizard: scaffold flake.nix (pick language + packages) + .envrc for a new project"; }
     { name = "cheat"; desc = "This help"; }
   ];
 
