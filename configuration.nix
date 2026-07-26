@@ -10,9 +10,6 @@
       ./hardware-configuration.nix
       ./disko-config.nix
       ./nvidia.nix
-      # Desktop environment: import exactly ONE of these.
-      ./desktop/gnome.nix
-      # ./desktop/hyprland.nix
       ./system/zfs.nix
       ./system/replication.nix
       ./system/shell.nix
@@ -20,7 +17,13 @@
       ./apps/impermanence.nix
       ./apps/virtualization.nix
       ./apps/steam.nix
+      ./apps/heroic.nix
+      ./apps/devshells.nix
       # ./apps/comfyui.nix
+      
+      # Desktop environment: import exactly ONE of these.
+      ./desktop/gnome.nix
+      # ./desktop/hyprland.nix
     ];
 
   # Bootloader.
@@ -89,8 +92,16 @@
   # Configure console keymap
   console.keyMap = "cz-lat2";
 
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
+  services.printing = {
+    enable  = true;
+    drivers = [ pkgs.canon-cups-ufr2 ];
+  };
+
+  services.avahi = {
+    enable       = true;
+    nssmdns4     = true;
+    openFirewall = true;
+  };
 
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
@@ -115,7 +126,7 @@
   users.users.komatrich = {
     isNormalUser = true;
     description = "KoMatrich";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "dialout" ];
     hashedPasswordFile = "/persist/passwords/komatrich";
   };
   home-manager.users.komatrich = import ./home.nix;
@@ -127,14 +138,20 @@
   environment.systemPackages = with pkgs; [
     pkgs.git
     pkgs.git-lfs
-    
+    pkgs.gh
+
     pkgs.htop
     pkgs.iftop
     pkgs.iotop
-    
+
     pkgs.lshw
 
     pkgs.pre-commit
+
+    # PulseAudio CLI tools (pactl) for Steam audio device queries.
+    # PipeWire's pulse compatibility layer provides the socket; this
+    # provides only the client binary, not a conflicting daemon.
+    pkgs.pulseaudio
   ];
 
   programs.nix-ld.enable = true;

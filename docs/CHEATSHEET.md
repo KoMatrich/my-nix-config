@@ -1,6 +1,10 @@
 # Cheatsheet
 
-Daily commands for this setup. Aliases are defined in `system/shell.nix`.
+Daily commands for this setup. Aliases are defined in `system/shell.nix`;
+run `cheat` in a terminal for a quick summary of them.
+
+The default shell is zsh with oh-my-zsh (plugins: `git`, `sudo`, `z`,
+`extract`) plus autosuggestions and syntax highlighting.
 
 ## System management
 
@@ -8,13 +12,34 @@ Daily commands for this setup. Aliases are defined in `system/shell.nix`.
 |---|---|---|
 | `rebuild` | `nh os switch` | Apply config changes from `/etc/nixos` |
 | `update` | `nh os switch --update` | Update flake inputs + rebuild |
-| `gc` | `nh clean all ...` | Delete old generations (keeps 7 days / last 5) |
+| `gc` | `nh clean all ...` | Delete old generations (keeps 7 days / last 5; dev shells expire separately, see below) |
 
 `nh` also shows a package diff on every rebuild. Old generations are cleaned
 automatically on a schedule too (`programs.nh.clean`).
 
 Editing the config: it lives in `/etc/nixos` (persisted, it's this git repo).
 Commit and push your changes — the repo is the backup of the config.
+
+## Dev shells (direnv)
+
+Dev shells are cached and GC-rooted per project via nix-direnv, so they
+survive reboots and `gc` and keep working offline. A shell only expires
+after **30 days without use** (every `cd` into the project resets the
+clock); `node_modules` of npm projects untouched for **60 days** are also
+auto-deleted (both run as weekly user timers, see `apps/devshells.nix`).
+
+| Command | What it does |
+|---|---|
+| `mkflake` | Guided wizard: scaffold `flake.nix` (pick language + packages) + `.envrc` for a new project |
+| `mkenvrc` | Add `.envrc` to an existing project that already has a `flake.nix` / `shell.nix` + `direnv allow` |
+| `devshells` | List cached dev shells with last-used age and closure size |
+| `devshell-clean` | Run the 30d/60d cleanup now and show what was deleted |
+
+**Starting from scratch?** Run `mkflake` — it creates both `flake.nix` and `.envrc` in one go.
+**Already have a `flake.nix`?** Run `mkenvrc` to just add `.envrc` + `direnv allow`.
+
+Note: only direnv-entered shells are protected — a plain `nix develop` in a
+project without `.envrc` still creates no GC root.
 
 ## ZFS health & snapshots
 
@@ -66,6 +91,25 @@ Runs monthly on both pools automatically.
 zpool status              # shows last scrub result / progress
 sudo zpool scrub zroot    # start one manually
 ```
+
+## Hyprland keys
+
+Defined in `desktop/hyprland.nix`. `Super` = Windows key.
+
+| Keys | Action |
+|---|---|
+| `Super+Return` | Terminal (kitty) |
+| `Super+D` | App launcher (wofi) |
+| `Super+V` | Clipboard history |
+| `Super+Q` | Close window |
+| `Super+F` | Fullscreen |
+| `Super+Shift+Space` | Toggle floating |
+| `Super+1..9` | Switch workspace (`+Shift` = move window there) |
+| `Super+arrows` | Move focus (`+Shift` = move window, `+Ctrl` = resize) |
+| `Super+mouse drag` | Move window (right button = resize) |
+| `Print` | Screenshot region → clipboard (`Shift+Print` = full screen → ~/Pictures) |
+| `Super+L` | Lock screen |
+| `Super+M` | Exit Hyprland session |
 
 ## Steam / games
 

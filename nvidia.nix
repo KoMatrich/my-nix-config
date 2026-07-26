@@ -3,6 +3,10 @@
   # Enable OpenGL
   hardware.graphics = {
     enable = true;
+    # 32-bit Mesa drivers for the Intel iGPU path; without this, 32-bit
+    # games that don't use PRIME offload fall back to llvmpipe (software).
+    # NVIDIA's 32-bit libs are auto-included by the NVIDIA module.
+    enable32Bit = true;
     extraPackages = [
       pkgs.intel-compute-runtime
       pkgs.level-zero

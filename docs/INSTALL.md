@@ -113,7 +113,7 @@ sudo cp /mnt/etc/nixos/hardware-configuration.nix /tmp/nixos/hardware-configurat
 sudo rm -rf /mnt/etc/nixos
 sudo mkdir -p /mnt/persist/etc
 sudo cp -r /tmp/nixos /mnt/persist/etc/nixos
-sudo nixos-install --flake /mnt/persist/etc/nixos#default --no-root-passwd
+sudo nixos-install --flake /mnt/persist/etc/nixos#BLACK-BOX --no-root-passwd
 ```
 
 ## 9. Export the pools, then reboot

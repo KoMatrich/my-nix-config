@@ -32,7 +32,9 @@
     ...
     }:
     {
-      nixosConfigurations.default = nixpkgs.lib.nixosSystem {
+      # Named after networking.hostName so `nh os switch` / `nixos-rebuild
+      # --flake /etc/nixos` resolve it automatically.
+      nixosConfigurations."BLACK-BOX" = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           disko.nixosModules.disko
