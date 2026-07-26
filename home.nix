@@ -26,6 +26,8 @@
 
       pkgs.zotero
       pkgs.obsidian
+
+      pkgs.spotify
     ];
     
     programs.git = {
