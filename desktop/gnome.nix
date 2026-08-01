@@ -59,6 +59,17 @@
       pkgs.gnomeExtensions.blur-my-shell
       pkgs.gnomeExtensions.gsconnect
       pkgs.gnomeExtensions.caffeine
+
+      (pkgs.writeShellScriptBin "toggle-touchpad" ''
+        current=$(gsettings get org.gnome.desktop.peripherals.touchpad send-events)
+        if [ "$current" = "'disabled-on-external-mouse'" ]; then
+          gsettings set org.gnome.desktop.peripherals.touchpad send-events enabled
+          notify-send "Touchpad" "Always enabled" --icon=input-touchpad
+        else
+          gsettings set org.gnome.desktop.peripherals.touchpad send-events disabled-on-external-mouse
+          notify-send "Touchpad" "Auto-disabled when mouse connected" --icon=input-touchpad
+        fi
+      '')
     ];
 
     dconf = {
@@ -71,6 +82,19 @@
           gsconnect.extensionUuid
           caffeine.extensionUuid
         ];
+      };
+      settings."org/gnome/desktop/peripherals/touchpad" = {
+        send-events = "disabled-on-external-mouse";
+      };
+      settings."org/gnome/settings-daemon/plugins/media-keys" = {
+        custom-keybindings = [
+          "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+        ];
+      };
+      settings."org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
+        name = "Toggle touchpad auto-disable";
+        command = "toggle-touchpad";
+        binding = "<Super>F6";
       };
     };
   };

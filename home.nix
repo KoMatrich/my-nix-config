@@ -9,6 +9,7 @@
       pkgs.digikam
       pkgs.discord
       pkgs.gimp pkgs.imagemagick
+      pkgs.inkscape
 
       pkgs.vmtouch
 
@@ -26,8 +27,6 @@
 
       pkgs.zotero
       pkgs.obsidian
-
-      pkgs.spotify
     ];
     
     programs.git = {
