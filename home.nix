@@ -27,6 +27,11 @@
 
       pkgs.zotero
       pkgs.obsidian
+
+      pkgs.libreoffice-qt
+      pkgs.hunspell
+      pkgs.hunspellDicts.cs_CZ
+      pkgs.hunspellDicts.uk_UA
     ];
     
     programs.git = {
