@@ -21,6 +21,9 @@
     # Intentionally NOT following our nixpkgs: upstream pins nixos-unstable
     # and its CUDA packages are built/tested against that.
     comfyui-nix.url = "github:utensils/comfyui-nix";
+
+    # Tracks upstream releases faster than nixpkgs.
+    claude-code-nix.url = "github:sadjow/claude-code-nix";
   };
 
   outputs = {
@@ -29,6 +32,7 @@
     impermanence,
     disko,
     comfyui-nix,
+    claude-code-nix,
     ...
     }:
     {
@@ -37,6 +41,7 @@
       nixosConfigurations."BLACK-BOX" = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
+          { nixpkgs.overlays = [ claude-code-nix.overlays.default ]; }
           disko.nixosModules.disko
           home-manager.nixosModules.home-manager
           impermanence.nixosModules.impermanence
