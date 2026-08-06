@@ -86,6 +86,12 @@
       settings."org/gnome/desktop/peripherals/touchpad" = {
         send-events = "disabled-on-external-mouse";
       };
+      # NumLock on in the session too, matching the initrd passphrase prompt
+      # (see system/zfs.nix). GNOME's remember-numlock-state means this is
+      # re-asserted at every login.
+      settings."org/gnome/desktop/peripherals/keyboard" = {
+        numlock-state = true;
+      };
       settings."org/gnome/settings-daemon/plugins/media-keys" = {
         custom-keybindings = [
           "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"

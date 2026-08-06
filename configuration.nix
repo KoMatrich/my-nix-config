@@ -29,6 +29,9 @@
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  # Skip the boot menu; hold Space during firmware handoff to get it back
+  # (e.g. to select an older generation).
+  boot.loader.timeout = 0;
 
   services.fwupd.enable = true;
 
@@ -46,6 +49,9 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
+  # Nothing on the boot path needs a synchronous "network is up" barrier;
+  # this only added 5.5s to multi-user.target.
+  systemd.services.NetworkManager-wait-online.enable = false;
 
   # Set your time zone.
   time.timeZone = "Europe/Prague";

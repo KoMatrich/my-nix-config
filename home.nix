@@ -10,6 +10,7 @@
       pkgs.discord
       pkgs.gimp pkgs.imagemagick
       pkgs.inkscape
+      pkgs.blender
 
       pkgs.vmtouch
 

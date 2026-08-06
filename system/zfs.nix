@@ -37,6 +37,25 @@
     '';
   };
 
+  # NumLock on for the zroot passphrase prompt. The prompt is a plain
+  # systemd-ask-password query on /dev/tty1, so flipping the VT's default LED
+  # state before the password agent runs is enough. extraBin copies setleds
+  # and its closure into the initrd.
+  boot.initrd.systemd.extraBin.setleds = "${pkgs.kbd}/bin/setleds";
+  boot.initrd.systemd.services.numlock = {
+    description = "Enable NumLock on the console";
+    wantedBy = [ "initrd.target" ];
+    before = [ "systemd-ask-password-console.service" "initrd.target" ];
+    unitConfig.DefaultDependencies = false;
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      StandardInput = "tty";
+      TTYPath = "/dev/tty1";
+      ExecStart = "/bin/setleds -D +num";
+    };
+  };
+
   # A dead/absent SSD must not block boot; only /games, ComfyUI models and
   # backups live there.
   fileSystems."/games".options = [ "nofail" ];
@@ -49,8 +68,8 @@
   };
   services.zfs.trim.enable = true;
 
-  # Cap the ZFS ARC at 8 GiB so games and dev tools keep most of the 32 GiB.
+  # Cap the ZFS ARC at 12 GiB so games and dev tools keep most of the 32 GiB.
   # ARC shrinks under memory pressure, but slowly - a hard cap behaves better
   # on a desktop. Tune here if needed.
-  boot.kernelParams = [ "zfs.zfs_arc_max=8589934592" ];
+  boot.kernelParams = [ "zfs.zfs_arc_max=12884901888" ];
 }
