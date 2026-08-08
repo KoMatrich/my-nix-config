@@ -14,8 +14,11 @@ let
     {
       title = "System management";
       aliases = [
-        { name = "rebuild"; cmd = "nh os switch"; desc = "Apply config changes from /etc/nixos"; }
-        { name = "update"; cmd = "nh os switch --update"; desc = "Update flake inputs + rebuild"; }
+        # verify = true installs these as wrapper scripts (mkVerified below)
+        # instead of plain aliases, so a switch that silently fails to land is
+        # reported instead of exiting 0.
+        { name = "rebuild"; cmd = "nh os switch"; desc = "Apply config changes from /etc/nixos"; verify = true; }
+        { name = "update"; cmd = "nh os switch --update"; desc = "Update flake inputs + rebuild"; verify = true; }
         { name = "gc"; cmd = "nh clean all ${gcArgs}"; desc = "Delete old generations (keeps 7 days / last 5; dev shells expire separately after 30 days)"; }
       ];
     }
@@ -43,6 +46,44 @@ let
     { name = "mkflake"; desc = "Guided wizard: scaffold flake.nix (pick language + packages) + .envrc for a new project"; }
     { name = "cheat"; desc = "This help"; }
   ];
+
+  allAliases = lib.concatMap (g: g.aliases) aliasGroups;
+  isVerified = a: a.verify or false;
+
+  # A `nh os switch` that exits 0 is not proof that anything happened: on
+  # 2026-08-06 a shadowed `sudo env` let nh report success three times without
+  # ever creating a generation. So after running the command, compare what the
+  # flake evaluates to against what is actually running. This holds whether or
+  # not the rebuild changed anything, unlike a before/after comparison — a
+  # no-op switch legitimately leaves /run/current-system untouched.
+  #
+  # nix/nh are pinned to the system closure: running this from inside a
+  # `nix develop` shell must not pick up that shell's toolchain.
+  mkVerified = a: pkgs.writeShellScriptBin a.name ''
+    PATH=${lib.makeBinPath [ config.programs.nh.package config.nix.package pkgs.coreutils ]}:$PATH
+
+    ${a.cmd} "$@"
+    status=$?
+
+    want=$(nix eval --raw '${config.programs.nh.flake}#nixosConfigurations.${config.networking.hostName}.config.system.build.toplevel' 2>/dev/null)
+    have=$(readlink -f /run/current-system)
+
+    if [ -z "$want" ]; then
+      printf '\n\033[1;33m! %s: could not verify — flake evaluation failed\033[0m\n' '${a.name}' >&2
+      exit "$status"
+    fi
+
+    if [ "$want" != "$have" ]; then
+      printf '\n\033[1;31m✗ %s did not land: /run/current-system does not match the config\033[0m\n' '${a.name}' >&2
+      printf '    want: %s\n    have: %s\n' "$want" "$have" >&2
+      printf '  If the command above looked successful, suspect a shadowed binary:\n' >&2
+      printf '    ls -l ~/.local/bin/env && journalctl -t sudo --since -10min\n' >&2
+      exit 1
+    fi
+
+    printf '\n\033[1;32m✓ %s landed: %s\033[0m\n' '${a.name}' "$have"
+    exit "$status"
+  '';
 
   pad = s: s + lib.strings.replicate (lib.max 1 (16 - lib.stringLength s)) " ";
 
@@ -87,11 +128,13 @@ in
   };
   users.defaultUserShell = pkgs.zsh;
 
+  # Verified entries ship as scripts in systemPackages below; aliasing them
+  # here too would shadow those scripts and skip the check.
   environment.shellAliases = lib.listToAttrs
     (map (a: lib.nameValuePair a.name a.cmd)
-      (lib.concatMap (g: g.aliases) aliasGroups));
+      (lib.filter (a: !isVerified a) allAliases));
 
-  environment.systemPackages = [
+  environment.systemPackages = map mkVerified (lib.filter isVerified allAliases) ++ [
     # Quick reference for everything defined in this file.
     (pkgs.writeShellScriptBin "cheat" ''
       printf '%s' ${lib.escapeShellArg helpText}
