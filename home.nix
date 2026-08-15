@@ -33,6 +33,9 @@
       pkgs.hunspell
       pkgs.hunspellDicts.cs_CZ
       pkgs.hunspellDicts.uk_UA
+
+      pkgs.prismlauncher
+      pkgs.arduino
     ];
     
     programs.git = {

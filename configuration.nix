@@ -19,6 +19,7 @@
       ./apps/steam.nix
       ./apps/heroic.nix
       ./apps/devshells.nix
+      ./apps/owon-vds1022.nix
       # ./apps/comfyui.nix
       
       # Desktop environment: import exactly ONE of these.
