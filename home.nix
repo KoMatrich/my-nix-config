@@ -36,6 +36,7 @@
 
       pkgs.prismlauncher
       pkgs.arduino
+      pkgs.opencode
     ];
     
     programs.git = {
