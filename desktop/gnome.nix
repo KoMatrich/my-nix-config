@@ -24,6 +24,7 @@
   environment.systemPackages = with pkgs; [
     pkgs.gnome-keyring
     pkgs.gnome-settings-daemon
+    pkgs.lm_sensors
   ];
 
   environment.gnome.excludePackages = (with pkgs; [
@@ -59,6 +60,7 @@
       pkgs.gnomeExtensions.blur-my-shell
       pkgs.gnomeExtensions.gsconnect
       pkgs.gnomeExtensions.caffeine
+      pkgs.gnomeExtensions.freon
 
       (pkgs.writeShellScriptBin "toggle-touchpad" ''
         current=$(gsettings get org.gnome.desktop.peripherals.touchpad send-events)
@@ -81,6 +83,7 @@
           blur-my-shell.extensionUuid
           gsconnect.extensionUuid
           caffeine.extensionUuid
+          freon.extensionUuid
         ];
       };
       settings."org/gnome/desktop/peripherals/touchpad" = {
