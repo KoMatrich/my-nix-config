@@ -13,6 +13,7 @@
       ./system/zfs.nix
       ./system/replication.nix
       ./system/shell.nix
+      ./system/zerotier.nix
       ./apps/antivirus.nix
       ./apps/impermanence.nix
       ./apps/virtualization.nix
@@ -137,7 +138,11 @@
   users.users.komatrich = {
     isNormalUser = true;
     description = "KoMatrich";
-    extraGroups = [ "networkmanager" "wheel" "dialout" ];
+    # "input" lets voice2text read /dev/input/event* directly for its
+    # push-to-talk key. Under Wayland an X11/XRecord listener only sees keys
+    # while an XWayland window has focus, which is almost never. Note this also
+    # means any process running as this user can read all keyboard input.
+    extraGroups = [ "networkmanager" "wheel" "dialout" "input" ];
     hashedPasswordFile = "/persist/passwords/komatrich";
   };
   home-manager.users.komatrich = import ./home.nix;

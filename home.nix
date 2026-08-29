@@ -1,6 +1,11 @@
-{ config, pkgs, ... }:
+{ config, pkgs, voice2text, ... }:
 
 {
+    imports = [ voice2text.homeModules.default ];
+
+    # Push-to-talk dictation; runs as a user service from graphical-session.
+    services.voice2text.enable = true;
+
     home.username = "komatrich";
     home.homeDirectory = "/home/komatrich";
 

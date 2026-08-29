@@ -24,6 +24,13 @@
 
     # Tracks upstream releases faster than nixpkgs.
     claude-code-nix.url = "github:sadjow/claude-code-nix";
+
+    # Push-to-talk Whisper dictation, autostarted as a user service.
+    # git+file rather than path so .venv/build artefacts stay out of the store;
+    # main.py must be committed for a rebuild to pick it up. The follows is
+    # required - a second nixpkgs would mean a second CUDA CTranslate2 build.
+    voice2text.url = "git+file:///home/komatrich/Tools/voice2text";
+    voice2text.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = {
@@ -33,6 +40,7 @@
     disko,
     comfyui-nix,
     claude-code-nix,
+    voice2text,
     ...
     }:
     {
@@ -46,6 +54,9 @@
           home-manager.nixosModules.home-manager
           impermanence.nixosModules.impermanence
           comfyui-nix.nixosModules.default
+          # home.nix is imported by configuration.nix, which has no flake
+          # inputs in scope; hand voice2text through to it.
+          { home-manager.extraSpecialArgs = { inherit voice2text; }; }
           ./configuration.nix
         ];
       };
