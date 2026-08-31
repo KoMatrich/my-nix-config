@@ -127,6 +127,18 @@ in
         "extract" # extract <archive> handles any format
       ];
     };
+    # nix-shell/nix develop exports TMPDIR pointing at a freshly-mktemp'd
+    # dir and that value leaks into anything spawned from that shell
+    # (a terminal opened from inside a devshell, a background tool). If
+    # the owning shell later exits (or / gets rolled back to the blank
+    # snapshot on next boot, see system/zfs.nix), the inherited TMPDIR
+    # points at nothing, and the next nix-shell/nix develop fails trying
+    # to mktemp a subdir inside it: "No such file or directory". Since
+    # this runs on every new interactive shell it self-heals regardless
+    # of which parent process left the stale value behind.
+    interactiveShellInit = ''
+      [[ -n "$TMPDIR" && ! -d "$TMPDIR" ]] && unset TMPDIR
+    '';
   };
   users.defaultUserShell = pkgs.zsh;
 

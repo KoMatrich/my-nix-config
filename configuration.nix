@@ -14,6 +14,7 @@
       ./system/replication.nix
       ./system/shell.nix
       ./system/zerotier.nix
+      ./system/firewall.nix
       ./apps/antivirus.nix
       ./apps/impermanence.nix
       ./apps/virtualization.nix
