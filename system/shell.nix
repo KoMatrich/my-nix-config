@@ -20,8 +20,12 @@ let
         { name = "rebuild"; cmd = "nice -n 19 nh os switch"; desc = "Apply config changes from /etc/nixos"; verify = true; }
         { name = "update"; cmd = "nice -n 19 nh os switch --update"; desc = "Update flake inputs + rebuild"; verify = true; }
         { name = "gc"; cmd = "nice -n 19 nh clean all ${gcArgs}"; desc = "Delete old generations (keeps 7 days / last 5; dev shells expire separately after 30 days)"; }
-        { name = "mute"; cmd="sudo sh -c \"echo 60 > /sys/devices/system/cpu/intel_pstate/max_perf_pct; echo 1 > /sys/devices/system/cpu/intel_pstate/no_turbo\""; desc="Lower cpu freq"; }
-        { name = "unmute"; cmd="sudo sh -c \"echo 100 > /sys/devices/system/cpu/intel_pstate/max_perf_pct; echo 0 > /sys/devices/system/cpu/intel_pstate/no_turbo\""; desc="Normal cpu freq"; }
+        # Power profiles go through power-profiles-daemon, whose polkit action
+        # allows any active local session without a password - so these need no
+        # sudo. system/power.nix follows the profile and applies the
+        # max_perf_pct / no_turbo clamps these aliases used to write directly.
+        # The same switch is in GNOME's Quick Settings as "Power Mode".
+        { name = "cpu-mode"; cmd="powerprofilesctl get"; desc="Show the active power profile"; }
       ];
     }
     {

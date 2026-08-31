@@ -41,9 +41,22 @@
 
       pkgs.prismlauncher
       pkgs.arduino
-      pkgs.opencode
+
+      # opencode's bundled native file-watcher addon dlopen()s libstdc++.so.6
+      # at runtime, which isn't on the default search path under Nix (no FHS).
+      # Wrap just this binary with LD_LIBRARY_PATH rather than setting it
+      # system-wide, to avoid shadowing other packages' own libstdc++.
+      (pkgs.symlinkJoin {
+        name = "opencode";
+        paths = [ pkgs.opencode ];
+        buildInputs = [ pkgs.makeWrapper ];
+        postBuild = ''
+          wrapProgram $out/bin/opencode \
+            --suffix LD_LIBRARY_PATH : ${pkgs.stdenv.cc.cc.lib}/lib
+        '';
+      })
     ];
-    
+
     programs.git = {
       package = pkgs.gitFull;
       enable = true;

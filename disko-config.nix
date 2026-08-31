@@ -96,6 +96,29 @@
             mountpoint = "/nix";
             options.mountpoint = "legacy";
           };
+          # Ollama model blobs: large, re-downloadable, never replicated. Must
+          # stay on the NVMe (zstorage is a QLC SATA drive) because llama.cpp
+          # mmaps the GGUF and pages it in on demand.
+          # recordsize=1M matches those large sequential reads; compression=off
+          # because GGUF/MXFP4 weights are already compressed and zstd would
+          # burn CPU on every page fault; primarycache=metadata stops the ARC
+          # from caching the model a second time alongside mmap's page cache
+          # (the ARC is capped at 12 GiB in system/zfs.nix, of 32 GiB total).
+          # The path is /var/lib/private/ollama, not /var/lib/ollama: the module
+          # runs ollama with DynamicUser, so systemd owns /var/lib/ollama as a
+          # symlink into private/ and puts the real StateDirectory there.
+          # Without this dataset the models live on local/root and are erased
+          # by the blank-snapshot rollback on every boot, then re-downloaded.
+          "local/ollama" = {
+            type = "zfs_fs";
+            mountpoint = "/var/lib/private/ollama";
+            options = {
+              mountpoint = "legacy";
+              recordsize = "1M";
+              compression = "off";
+              primarycache = "metadata";
+            };
+          };
           # safe/* = the data that matters; snapshotted + replicated to zstorage
           "safe" = {
             type = "zfs_fs";

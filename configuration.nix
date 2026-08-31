@@ -15,6 +15,7 @@
       ./system/shell.nix
       ./system/zerotier.nix
       ./system/firewall.nix
+      ./system/power.nix
       ./apps/antivirus.nix
       ./apps/impermanence.nix
       ./apps/virtualization.nix
