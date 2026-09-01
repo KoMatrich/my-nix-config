@@ -249,11 +249,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1788047200,
-        "narHash": "sha256-Nf9sCpmjR0gKgqX/01SW/cX7UgKf3j42j8qjXsyM7E8=",
+        "lastModified": 1788195436,
+        "narHash": "sha256-E5+Al4Ogq8QATdeCg/QqvhUpmjmbJuAOsRVVi7/t7dA=",
         "ref": "refs/heads/main",
-        "rev": "44551af22a7090d1f76d477f24ad8e7200f134bf",
-        "revCount": 6,
+        "rev": "b394e108fe9fa4a90a5c9a4b2f87c3868eee98ce",
+        "revCount": 7,
         "type": "git",
         "url": "file:///home/komatrich/Tools/voice2text"
       },
