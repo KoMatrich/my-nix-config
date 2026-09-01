@@ -24,7 +24,6 @@
       ./apps/devshells.nix
       ./apps/owon-vds1022.nix
       # ./apps/comfyui.nix
-      ./apps/ollama.nix
       ./apps/godot.nix
       
       # Desktop environment: import exactly ONE of these.
@@ -170,6 +169,8 @@
     # PipeWire's pulse compatibility layer provides the socket; this
     # provides only the client binary, not a conflicting daemon.
     pkgs.pulseaudio
+
+    (pkgs.llama-cpp.override { cudaSupport = true; })
   ];
 
   programs.nix-ld.enable = true;
