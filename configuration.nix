@@ -25,6 +25,7 @@
       ./apps/owon-vds1022.nix
       # ./apps/comfyui.nix
       ./apps/godot.nix
+      ./apps/tailscale.nix
       
       # Desktop environment: import exactly ONE of these.
       ./desktop/gnome.nix
@@ -176,10 +177,23 @@
   programs.nix-ld.enable = true;
   programs.appimage.enable = true;
   programs.appimage.binfmt = true;
-  
+
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-    
+
   services.thermald.enable = true;
+
+  # Local LLM daemon for opencode: swaps the loaded model per-request
+  # (gpt-oss:20b vs qwen3:4b), unlike llama-server which serves one
+  # already-loaded model at a time.
+  services.ollama = {
+    enable = true;
+    package = pkgs.ollama-cuda;
+    # Only 4GB VRAM: never keep two models resident at once, always
+    # unload the previous model before loading the newly requested one.
+    environmentVariables = {
+      OLLAMA_MAX_LOADED_MODELS = "1";
+    };
+  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
