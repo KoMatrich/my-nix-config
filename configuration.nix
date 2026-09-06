@@ -24,6 +24,7 @@
       ./apps/devshells.nix
       ./apps/owon-vds1022.nix
       # ./apps/comfyui.nix
+      ./apps/gnome-network-displays.nix
       ./apps/godot.nix
       ./apps/tailscale.nix
       
