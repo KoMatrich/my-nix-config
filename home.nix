@@ -22,6 +22,7 @@
       pkgs.prusa-slicer
 
       pkgs.claude-code
+      pkgs.aider-chat
       pkgs.jq
       pkgs.libnotify
 
