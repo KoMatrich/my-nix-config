@@ -173,7 +173,7 @@
     # provides only the client binary, not a conflicting daemon.
     pkgs.pulseaudio
 
-    (pkgs.llama-cpp.override { cudaSupport = true; })
+    # (pkgs.llama-cpp.override { cudaSupport = true; })
   ];
 
   programs.nix-ld.enable = true;
