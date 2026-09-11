@@ -23,11 +23,10 @@
       ./apps/heroic.nix
       ./apps/devshells.nix
       ./apps/owon-vds1022.nix
-      # ./apps/comfyui.nix
       ./apps/gnome-network-displays.nix
       ./apps/godot.nix
       ./apps/tailscale.nix
-      ./apps/ollama.nix
+      ./apps/llm.nix
       
       # Desktop environment: import exactly ONE of these.
       ./desktop/gnome.nix
@@ -172,8 +171,6 @@
     # PipeWire's pulse compatibility layer provides the socket; this
     # provides only the client binary, not a conflicting daemon.
     pkgs.pulseaudio
-
-    # (pkgs.llama-cpp.override { cudaSupport = true; })
   ];
 
   programs.nix-ld.enable = true;
@@ -182,6 +179,12 @@
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.auto-optimise-store = true;
+
+  # CUDA packages are unfree, so cache.nixos.org never has them (llama-cpp
+  # with cudaSupport, ollama-cuda). The NixOS CUDA team's cache does, as long
+  # as we don't change cudaCapabilities (that changes the store hash).
+  nix.settings.substituters = [ "https://cache.nixos-cuda.org" ];
+  nix.settings.trusted-public-keys = [ "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M=" ];
 
   services.thermald.enable = true;
 

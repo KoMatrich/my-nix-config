@@ -13,6 +13,11 @@
     };
   };
 
+  environment.systemPackages = with pkgs; [
+    pkgs.llmfit
+    (pkgs.llama-cpp.override { cudaSupport = true; })
+  ];
+
   # ollama uses DynamicUser=true, so systemd stores data in
   # /var/lib/private/ollama and symlinks /var/lib/ollama → that path.
   # We persist the real path; impermanence can't bind-mount over a symlink.
