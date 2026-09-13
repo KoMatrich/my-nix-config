@@ -16,6 +16,7 @@
       ./system/zerotier.nix
       ./system/firewall.nix
       ./system/power.nix
+      ./system/sleep.nix        # lid handling + "do not suspend while busy"
       ./apps/antivirus.nix
       ./apps/impermanence.nix
       ./apps/virtualization.nix
@@ -93,8 +94,6 @@
   # Auto login
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = "komatrich";
-  # Prevent sleep on lid close on power
-  services.logind.lidSwitch = "ignore";
   # Disable getty on tty1 to prevent conflicts with GDM auto login
   systemd.services."getty@tty1".enable = false;
   systemd.services."autovt@tty1".enable = false;
