@@ -142,6 +142,11 @@ in
     # of which parent process left the stale value behind.
     interactiveShellInit = ''
       [[ -n "$TMPDIR" && ! -d "$TMPDIR" ]] && unset TMPDIR
+
+      # zsh is configured here (NixOS), not in home-manager, so
+      # programs.direnv's enableZshIntegration has nowhere to write its
+      # hook - it only covers home-manager-managed shells. Hook it here.
+      eval "$(direnv hook zsh)"
     '';
   };
   users.defaultUserShell = pkgs.zsh;

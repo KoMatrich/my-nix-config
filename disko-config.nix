@@ -164,6 +164,15 @@
               recordsize = "1M";
             };
           };
+          # Ollama model blobs: huge, re-downloadable, not replicated.
+          "ollama-models" = {
+            type = "zfs_fs";
+            mountpoint = "/var/lib/ollama-models";
+            options = {
+              mountpoint = "legacy";
+              recordsize = "1M";
+            };
+          };
           # Replication targets. syncoid creates backup/home and backup/persist
           # on its first run; they receive raw (still-encrypted) streams and are
           # never mounted.

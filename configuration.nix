@@ -47,10 +47,10 @@
   zramSwap = {
     enable = true;
     algorithm = "zstd";
-    memoryPercent = 75;
+    memoryPercent = 50;
   };
   # zram is faster than reclaiming page cache, so swap aggressively into it.
-  boot.kernel.sysctl."vm.swappiness" = 180;
+  boot.kernel.sysctl."vm.swappiness" = 80;
 
   networking.hostName = "BLACK-BOX";
   networking.hostId   = "deadbeef";
@@ -165,6 +165,7 @@
     pkgs.lshw
 
     pkgs.pre-commit
+    pkgs.at
 
     # PulseAudio CLI tools (pactl) for Steam audio device queries.
     # PipeWire's pulse compatibility layer provides the socket; this

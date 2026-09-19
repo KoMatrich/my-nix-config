@@ -60,6 +60,7 @@
   # backups live there.
   fileSystems."/games".options = [ "nofail" ];
   fileSystems."/var/lib/comfyui/models".options = [ "nofail" ];
+  fileSystems."/var/lib/ollama-models".options = [ "nofail" ];
 
   # Monthly integrity check of all data on both pools.
   services.zfs.autoScrub = {
