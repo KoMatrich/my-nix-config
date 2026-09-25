@@ -1,10 +1,24 @@
-{ config, pkgs, voice2text, ... }:
+{ config, pkgs, voice2text, local-ci, ... }:
 
 {
-    imports = [ voice2text.homeModules.default ];
+    imports = [
+      voice2text.homeModules.default
+      local-ci.homeModules.default
+    ];
 
     # Push-to-talk dictation; runs as a user service from graphical-session.
     services.voice2text.enable = true;
+
+    # The `local-ci` command, plus user timers that check GitHub and ask
+    # (desktop notification) before building images or running PR tests.
+    # Repos, images and settings live in config.toml, read on every run;
+    # see ~/Tools/local-ci/README.md and docs/operations.md.
+    services.local-ci = {
+      enable = true;
+      configFile = "/home/komatrich/Tools/local-ci/config.toml";
+      build.enable = true; # local-ci-build: new commits missing from the registry
+      test.enable = true; # local-ci-test: enable once config.toml has a [repo.test]
+    };
 
     home.username = "komatrich";
     home.homeDirectory = "/home/komatrich";
@@ -25,6 +39,10 @@
       pkgs.aider-chat
       pkgs.jq
       pkgs.libnotify
+
+      # gh copies one-time login codes with the first of these it finds.
+      pkgs.wl-clipboard # Wayland: wl-copy / wl-paste
+      pkgs.xclip # X11 and XWayland apps
 
       pkgs.chromium
 

@@ -21,6 +21,15 @@
     setSocketVariable = true; # DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock
   };
 
+  # Run aarch64 containers (qemu-user), so local-ci can build the arm64 half of
+  # the multi-arch images the deploy host pulls. preferStaticEmulators makes the
+  # kernel preload the emulator (binfmt "F" flag): without it the interpreter path
+  # doesn't exist inside the buildkit container and builds fail with
+  # "exec format error". Verify: grep flags /proc/sys/fs/binfmt_misc/aarch64-linux
+  # and `docker run --rm --platform linux/arm64 alpine uname -m`.
+  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
+  boot.binfmt.preferStaticEmulators = true;
+
   environment.systemPackages = with pkgs; [
     docker-compose
     distrobox

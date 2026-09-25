@@ -39,6 +39,14 @@
     # required - a second nixpkgs would mean a second CUDA CTranslate2 build.
     voice2text.url = "git+file:///home/komatrich/Tools/voice2text";
     voice2text.inputs.nixpkgs.follows = "nixpkgs";
+
+    # On-demand CI from this PC: `local-ci build` (images to ghcr.io) and
+    # `local-ci test` (tests for pull requests), as user timers that ask before
+    # running.
+    # git+file, so changes must be committed there and then picked up with
+    # `nix flake update local-ci`.
+    local-ci.url = "git+file:///home/komatrich/Tools/local-ci";
+    local-ci.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = {
@@ -50,6 +58,7 @@
     comfyui-nix,
     claude-code-nix,
     voice2text,
+    local-ci,
     ...
     }:
     {
@@ -65,8 +74,8 @@
           impermanence.nixosModules.impermanence
           comfyui-nix.nixosModules.default
           # home.nix is imported by configuration.nix, which has no flake
-          # inputs in scope; hand voice2text through to it.
-          { home-manager.extraSpecialArgs = { inherit voice2text; }; }
+          # inputs in scope; hand voice2text and local-ci through to it.
+          { home-manager.extraSpecialArgs = { inherit voice2text local-ci; }; }
           ./configuration.nix
         ];
       };
