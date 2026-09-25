@@ -42,6 +42,8 @@
 
       pkgs.prismlauncher
       pkgs.arduino
+      pkgs.freecad
+      pkgs.net-tools
 
       # opencode's bundled native file-watcher addon dlopen()s libstdc++.so.6
       # at runtime, which isn't on the default search path under Nix (no FHS).
