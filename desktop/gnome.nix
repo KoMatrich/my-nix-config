@@ -61,6 +61,10 @@
       pkgs.gnomeExtensions.gsconnect
       pkgs.gnomeExtensions.caffeine
       pkgs.gnomeExtensions.freon
+      # Exposes a D-Bus method (activateByWmClass/activateBySubstring) that the
+      # claude-notifications-go plugin uses to raise the terminal window when
+      # you click a Claude Code notification.
+      pkgs.gnomeExtensions.activate-window-by-title
 
       (pkgs.writeShellScriptBin "toggle-touchpad" ''
         current=$(gsettings get org.gnome.desktop.peripherals.touchpad send-events)
@@ -84,6 +88,7 @@
           gsconnect.extensionUuid
           caffeine.extensionUuid
           freon.extensionUuid
+          activate-window-by-title.extensionUuid
         ];
       };
       settings."org/gnome/desktop/peripherals/touchpad" = {

@@ -94,6 +94,16 @@
       enable = true;
     };
 
+    # kitty: claude-notifications-go has full tab-level click-to-focus support
+    # for it (unlike GNOME Console, which is window-level only). Remote
+    # control (scoped to a per-instance socket, not exposed to other apps)
+    # lets it jump straight to the exact tab, via $KITTY_LISTEN_ON.
+    programs.kitty.enable = true;
+    programs.kitty.settings = {
+      allow_remote_control = "socket-only";
+      listen_on = "unix:/tmp/kitty-{kitty_pid}";
+    };
+
     services.gpg-agent = {
       enable = true;
       enableSshSupport = true;
