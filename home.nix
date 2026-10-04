@@ -16,8 +16,8 @@
     services.local-ci = {
       enable = true;
       configFile = "/home/komatrich/Tools/local-ci/config.toml";
-      build.enable = true; # local-ci-build: new commits missing from the registry
-      test.enable = true; # local-ci-test: enable once config.toml has a [repo.test]
+      build.enable = false; # local-ci-build: new commits missing from the registry
+      test.enable = false; # local-ci-test: enable once config.toml has a [repo.test]
     };
 
     home.username = "komatrich";
@@ -39,6 +39,14 @@
       pkgs.aider-chat
       pkgs.jq
       pkgs.libnotify
+
+      # CLI productivity: fast search (ripgrep/fd), structural
+      # search-and-rewrite (ast-grep), command benchmarking (hyperfine).
+      # delta is wired below via programs.delta, not listed here.
+      pkgs.ripgrep
+      pkgs.fd
+      pkgs.ast-grep
+      pkgs.hyperfine
 
       # gh copies one-time login codes with the first of these it finds.
       pkgs.wl-clipboard # Wayland: wl-copy / wl-paste
@@ -87,6 +95,11 @@
         user.email = "kocichmartin@gmail.com";
         init.defaultBranch = "main";
       };
+    };
+
+    programs.delta = {
+      enable = true;
+      enableGitIntegration = true;
     };
 
     programs.direnv.enable = true;
