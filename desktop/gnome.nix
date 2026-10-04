@@ -38,6 +38,7 @@
     # gnome-music
     # gnome-photos
     # gnome-terminal
+    # gnome-console
     gnome-tour
     hitori # sudoku game
     iagno # go game
@@ -61,10 +62,12 @@
       pkgs.gnomeExtensions.gsconnect
       pkgs.gnomeExtensions.caffeine
       pkgs.gnomeExtensions.freon
-      # Exposes a D-Bus method (activateByWmClass/activateBySubstring) that the
-      # claude-notifications-go plugin uses to raise the terminal window when
-      # you click a Claude Code notification.
-      pkgs.gnomeExtensions.activate-window-by-title
+      # Mutter's focus-stealing prevention intercepts kitty's remote-control
+      # focus request (from claude-notifications-go's background daemon) and
+      # shows a "kitty is ready" notification instead of actually focusing.
+      # This extension disables that deferral so the click-to-focus request
+      # goes through immediately.
+      pkgs.gnomeExtensions.steal-my-focus-window
 
       (pkgs.writeShellScriptBin "toggle-touchpad" ''
         current=$(gsettings get org.gnome.desktop.peripherals.touchpad send-events)
@@ -88,7 +91,7 @@
           gsconnect.extensionUuid
           caffeine.extensionUuid
           freon.extensionUuid
-          activate-window-by-title.extensionUuid
+          steal-my-focus-window.extensionUuid
         ];
       };
       settings."org/gnome/desktop/peripherals/touchpad" = {
