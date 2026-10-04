@@ -127,7 +127,6 @@ in
       plugins = [
         "git" # gst / gco / gl / ... shortcuts
         "sudo" # press ESC twice to prepend sudo to the current/last command
-        "z" # z <fragment> jumps to frecently used directories
         "extract" # extract <archive> handles any format
       ];
     };
@@ -149,6 +148,10 @@ in
       eval "$(direnv hook zsh)"
     '';
   };
+  # z <fragment> / zi jump to frecently used directories (replaces the
+  # oh-my-zsh "z" plugin, which would clash on the `z` command).
+  programs.zoxide.enable = true;
+
   users.defaultUserShell = pkgs.zsh;
 
   # Verified entries ship as scripts in systemPackages below; aliasing them
