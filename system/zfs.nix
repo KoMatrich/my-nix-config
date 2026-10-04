@@ -56,6 +56,27 @@
     };
   };
 
+  # console.keyMap only reaches the initrd via systemd-vconsole-setup, which
+  # is triggered async by udev on vtcon events and races the passphrase
+  # prompt: journalctl -b -1 shows it logging "Configuration of first virtual
+  # console was skipped, ignoring remaining ones" at 1.4s, then the password
+  # query already starting on tty1 at 2.2s with the keymap never applied.
+  # Load it directly instead, same fix shape as numlock above.
+  boot.initrd.systemd.extraBin.loadkeys = "${pkgs.kbd}/bin/loadkeys";
+  boot.initrd.systemd.services.keymap = {
+    description = "Load console keymap for the zroot passphrase prompt";
+    wantedBy = [ "initrd.target" ];
+    before = [ "systemd-ask-password-console.service" "initrd.target" ];
+    unitConfig.DefaultDependencies = false;
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      StandardInput = "tty";
+      TTYPath = "/dev/tty1";
+      ExecStart = "/bin/loadkeys ${config.console.keyMap}";
+    };
+  };
+
   # A dead/absent SSD must not block boot; only /games, ComfyUI models and
   # backups live there.
   fileSystems."/games".options = [ "nofail" ];
