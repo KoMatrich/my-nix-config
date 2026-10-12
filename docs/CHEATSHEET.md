@@ -13,6 +13,7 @@ The default shell is zsh with oh-my-zsh (plugins: `git`, `sudo`,
 | `rebuild` | `nh os switch` | Apply config changes from `/etc/nixos` |
 | `update` | `nh os switch --update` | Update flake inputs + rebuild |
 | `gc` | `nh clean all ...` | Delete old generations (keeps 7 days / last 5; dev shells expire separately, see below) |
+| `docker-clean` | `docker system prune -a` | Remove unused Docker images, stopped containers, networks and build cache (keeps volumes; asks first) |
 
 `nh` also shows a package diff on every rebuild. Old generations are cleaned
 automatically on a schedule too (`programs.nh.clean`).

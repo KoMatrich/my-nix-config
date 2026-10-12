@@ -44,13 +44,18 @@
   services.fwupd.enable = true;
 
   # Compressed swap in RAM; no disk swap, no hibernation.
+  # lz4 over zstd: several times cheaper to compress/decompress, at a worse
+  # ratio (~2:1 vs ~3:1) — the CPU cost under memory pressure matters more.
   zramSwap = {
     enable = true;
-    algorithm = "zstd";
+    algorithm = "lz4";
     memoryPercent = 50;
   };
   # zram is faster than reclaiming page cache, so swap aggressively into it.
   boot.kernel.sysctl."vm.swappiness" = 80;
+  # No swap readahead: zram has no seek cost to amortize, so reading 8 pages
+  # per fault (the default, 3) just decompresses pages nobody asked for.
+  boot.kernel.sysctl."vm.page-cluster" = 0;
 
   networking.hostName = "BLACK-BOX";
   networking.hostId   = "deadbeef";

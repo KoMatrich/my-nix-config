@@ -66,7 +66,6 @@
       pkgs.hunspellDicts.cs_CZ
       pkgs.hunspellDicts.uk_UA
 
-      pkgs.prismlauncher
       pkgs.arduino
       pkgs.freecad
       pkgs.net-tools
