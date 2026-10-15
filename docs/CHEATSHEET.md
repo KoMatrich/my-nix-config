@@ -42,6 +42,21 @@ auto-deleted (both run as weekly user timers, see `apps/devshells.nix`).
 Note: only direnv-entered shells are protected — a plain `nix develop` in a
 project without `.envrc` still creates no GC root.
 
+## Pi coding agent
+
+`pi` is installed globally via home-manager (`home.nix`) together with
+Superpowers and the `pi-subagents` delegation extension. Its provider and
+model config is generated into `~/.pi/agent/models.json`; the e-INFRA gateway
+reuses the same token file opencode reads (`~/.config/opencode/einfra-token`).
+
+| Command | What it does |
+|---|---|
+| `pi-models-refresh` | Regenerate `/etc/nixos/pi-models.nix` from the live e-INFRA model list — review, commit, then `rebuild` |
+
+The model list is a committed Nix file on purpose (reproducible), so adding a
+newly-released e-INFRA model is a deliberate `pi-models-refresh` + commit,
+not a network fetch on every boot.
+
 ## ZFS health & snapshots
 
 | Alias | What it shows |

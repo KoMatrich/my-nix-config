@@ -47,6 +47,17 @@
     # `nix flake update local-ci`.
     local-ci.url = "git+file:///home/komatrich/Tools/local-ci";
     local-ci.inputs.nixpkgs.follows = "nixpkgs";
+
+    # Pi coding agent (terminal AI agent built with Bun). Provides the `pi`
+    # package plus NixOS/Home Manager modules; home.nix uses the HM module to
+    # install `pi` globally and declare the e-infra provider + Superpowers.
+    pi-flake.url = "github:ChauDucToan/pi-flake";
+
+    # Claude Desktop (Anthropic's Linux beta). Only shipped as a .deb, so this
+    # in-repo flake repackages it; see pkgs/claude-desktop/flake.nix for the
+    # update procedure. Exposed as pkgs.claude-desktop via its overlay.
+    claude-desktop.url = "path:./pkgs/claude-desktop";
+    claude-desktop.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = {
@@ -59,6 +70,8 @@
     claude-code-nix,
     voice2text,
     local-ci,
+    pi-flake,
+    claude-desktop,
     ...
     }:
     {
@@ -68,14 +81,14 @@
         system = "x86_64-linux";
         specialArgs = { inherit nixpkgs-llama; };
         modules = [
-          { nixpkgs.overlays = [ claude-code-nix.overlays.default ]; }
+          { nixpkgs.overlays = [ claude-code-nix.overlays.default claude-desktop.overlays.default ]; }
           disko.nixosModules.disko
           home-manager.nixosModules.home-manager
           impermanence.nixosModules.impermanence
           comfyui-nix.nixosModules.default
           # home.nix is imported by configuration.nix, which has no flake
-          # inputs in scope; hand voice2text and local-ci through to it.
-          { home-manager.extraSpecialArgs = { inherit voice2text local-ci; }; }
+          # inputs in scope; hand voice2text, local-ci and pi-flake through to it.
+          { home-manager.extraSpecialArgs = { inherit voice2text local-ci pi-flake; }; }
           ./configuration.nix
         ];
       };

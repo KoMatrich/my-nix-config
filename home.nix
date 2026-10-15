@@ -1,9 +1,10 @@
-{ config, pkgs, voice2text, local-ci, ... }:
+{ config, pkgs, voice2text, local-ci, pi-flake, ... }:
 
 {
     imports = [
       voice2text.homeModules.default
       local-ci.homeModules.default
+      pi-flake.homeManagerModules.default
     ];
 
     # Push-to-talk dictation; runs as a user service from graphical-session.
@@ -36,6 +37,7 @@
       pkgs.prusa-slicer
 
       pkgs.claude-code
+      pkgs.claude-desktop
       pkgs.aider-chat
       pkgs.jq
       pkgs.libnotify
@@ -99,6 +101,35 @@
     programs.delta = {
       enable = true;
       enableGitIntegration = true;
+    };
+
+    # Pi coding agent, installed globally (the module adds it to home.packages)
+    # together with Superpowers and the pi-subagents delegation extension.
+    # `agentFiles.models` is a read-only symlink into the Nix store declaring the
+    # same e-INFRA gateway opencode uses; Pi runs the apiKey command at request
+    # time, so the token never lands in the store. The model list lives in
+    # ./pi-models.nix and is refreshed with `pi-models-refresh` (then commit).
+    programs.pi-coding-agent = {
+      enable = true;
+
+      extensions = [
+        "git:github.com/obra/superpowers"
+        "npm:pi-subagents"
+      ];
+
+      agentFiles.models = {
+        value = {
+          providers = {
+            e-infra = {
+              name = "LLM AI e-infra";
+              baseUrl = "https://llm.ai.e-infra.cz/v1";
+              api = "openai-completions";
+              apiKey = "!cat /home/komatrich/.config/opencode/einfra-token";
+              models = import ./pi-models.nix;
+            };
+          };
+        };
+      };
     };
 
     programs.direnv.enable = true;

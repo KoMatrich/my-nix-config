@@ -56,6 +56,9 @@
   # No swap readahead: zram has no seek cost to amortize, so reading 8 pages
   # per fault (the default, 3) just decompresses pages nobody asked for.
   boot.kernel.sysctl."vm.page-cluster" = 0;
+  # Task delay accounting: needed for iotop's SWAPIN/IO> columns. Off by
+  # default (small per-context-switch overhead); fine to enable on a desktop.
+  boot.kernel.sysctl."kernel.task_delayacct" = 1;
 
   networking.hostName = "BLACK-BOX";
   networking.hostId   = "deadbeef";
