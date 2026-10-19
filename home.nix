@@ -88,6 +88,14 @@
         };
       }))
 
+      # Bootable USB writers (Rufus is Windows-only). Impression: GNOME app
+      # for Linux/hybrid ISOs (dd-style). WoeUSB-ng: Windows installer ISOs,
+      # which can't simply be dd'd (needs NTFS/UEFI:NTFS split) - `woeusbgui`
+      # or `sudo woeusb --device win.iso /dev/sdX`. Ventoy is left out:
+      # nixpkgs marks it insecure (prebuilt binary blobs).
+      pkgs.impression
+      pkgs.woeusb-ng
+
       # opencode's bundled native file-watcher addon dlopen()s libstdc++.so.6
       # at runtime, which isn't on the default search path under Nix (no FHS).
       # Wrap just this binary with LD_LIBRARY_PATH rather than setting it
