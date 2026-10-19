@@ -51,6 +51,16 @@ in
     package = if wifi then pkgs.usbmuxd2 else pkgs.usbmuxd;
   };
 
+  # Start only once the persisted /var/lib/lockdown is bind-mounted - else on
+  # the first switch usbmuxd may write its SystemConfiguration.plist (host ID)
+  # to the ephemeral root, and pairings made then break after a reboot.
+  systemd.services.usbmuxd.unitConfig.RequiresMountsFor = [ "/var/lib/lockdown" ];
+
+  # Fallback if a paired phone never shows up in `idevice_id -n` (newer iOS
+  # may not send the heartbeat usbmuxd2 waits for):
+  # systemd.services.usbmuxd.serviceConfig.ExecStart = lib.mkForce
+  #   "${config.services.usbmuxd.package}/bin/usbmuxd -U ${config.services.usbmuxd.user} -v --allow-heartless-wifi";
+
   environment.systemPackages = [
     pkgs.libimobiledevice # idevicepair, idevicebackup2, ideviceinfo, ...
     pkgs.ifuse            # mount the phone's media/app files: `ifuse ~/iPhone`

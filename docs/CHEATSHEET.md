@@ -130,7 +130,7 @@ to `~/Backups/iPhone`, so they're replicated with the rest of `/home`.
 
 1. Plug the phone in via USB, unlock it, tap **Trust**, then `idevicepair pair`.
    Pairing is persisted (`/var/lib/lockdown`), so this survives reboots.
-2. Optional but recommended: `idevicebackup2 encryption on` (asks for a
+2. Optional but recommended: `idevicebackup2 -i encryption on` (asks for a
    password). Only encrypted backups include saved passwords, Wi-Fi and
    Health data. **Lose the password and the backup is useless.**
 3. `iphone-backup` — the first run is a full backup and takes a while.
@@ -138,14 +138,19 @@ to `~/Backups/iPhone`, so they're replicated with the rest of `/home`.
    the phone (same network, phone unlocked/awake). After that `iphone-backup`
    works wirelessly.
 
-**Restore:** `idevicebackup2 restore --system --settings ~/Backups/iPhone`
-(phone on USB; *Find My* must be off on the phone).
+**Restore:** `idevicebackup2 -i restore --system --settings ~/Backups/iPhone`
+(phone on USB; *Find My* must be off on the phone; `-i` prompts for the
+backup password if encrypted). Onto a new/replacement phone, add
+`-s <old-UDID>` — backups are stored per UDID (the folder name in
+`~/Backups/iPhone`).
 
 **Wi-Fi not showing up?** Wi-Fi uses `usbmuxd2` instead of stock usbmuxd and
 depends on the iOS version, so it's best-effort; USB always works. Check
 `journalctl -u usbmuxd`, that `avahi-browse -rt _apple-mobdev2._tcp` sees the
 phone, and that `sudo grep WiFiMACAddress /var/lib/lockdown/*.plist` finds
-the pairing's Wi-Fi MAC (if not, re-run `idevicepair pair` over USB). If
+the pairing's Wi-Fi MAC (if not, re-run `idevicepair pair` over USB). If the
+phone is visible to avahi but not to `idevice_id -n`, uncomment the
+`--allow-heartless-wifi` override in `apps/iphone.nix` and `rebuild`. If
 usbmuxd2 itself misbehaves, set `wifi = false` in `apps/iphone.nix` to go
 back to USB-only stock usbmuxd.
 

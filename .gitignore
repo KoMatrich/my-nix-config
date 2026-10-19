@@ -1,3 +1,6 @@
 # `nixos-rebuild build` output symlink
 result
 result-*
+
+# Claude Code worktrees (nested git checkouts)
+.claude/worktrees/
