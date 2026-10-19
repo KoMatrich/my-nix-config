@@ -161,12 +161,91 @@ reproducible.
    inside /persist — check `/mnt/persist/passwords/` after mounting, then
    steps 8–10).
 
-## Both disks died
+## Both disks died — restore from the USB HDD
 
-The replicas were on the same machine as the originals — that's what the
-external backup from INSTALL.md step 0 (or your own off-machine backups) is
-for. Consider periodic `syncoid` runs to an external USB disk for the
-irreplaceable stuff.
+`zusb` holds raw (still encrypted) replicas of `zroot/safe/{home,persist}`
+as of the last time the drive was plugged in. `/persist` contains
+`/etc/nixos` with its full git history and `flake.lock`, so rebuilding from
+it reproduces the exact system, and `/home` contains `~/Tools/{voice2text,local-ci}`,
+which the flake's `git+file` inputs need.
+
+1. Replace the disks, boot the NixOS live ISO, follow
+   [INSTALL.md](INSTALL.md) steps 1–5 (the GitHub clone is fine for disko;
+   the exact config comes back with `/persist`). Use the **same passphrase as
+   before** so the raw streams remain loadable.
+
+   > **Keep the USB HDD unplugged until disko has finished.** disko addresses
+   > disks as `/dev/sda` etc.; a USB drive plugged in at boot can take that
+   > name and would be wiped in step 4.
+
+2. Plug the USB HDD in and import it (`-f`: the pool was last used by the
+   old install's hostid, which the live ISO doesn't have):
+
+   ```sh
+   sudo zpool import -f -N zusb
+   ```
+
+3. Restore exactly as from the SSD replica (previous section, step 4), with
+   `zusb/backup/*` as the source:
+
+   ```sh
+   LATEST_HOME=$(zfs list -t snapshot -o name -s creation zusb/backup/home | tail -1)
+   LATEST_PERSIST=$(zfs list -t snapshot -o name -s creation zusb/backup/persist | tail -1)
+   sudo zfs send -w "$LATEST_HOME"    | sudo zfs recv -F zroot/safe/home
+   sudo zfs send -w "$LATEST_PERSIST" | sudo zfs recv -F zroot/safe/persist
+   sudo zfs load-key -L prompt zroot/safe/home
+   sudo zfs load-key -L prompt zroot/safe/persist
+   sudo zfs change-key -i zroot/safe/home
+   sudo zfs change-key -i zroot/safe/persist
+   sudo zfs set mountpoint=legacy zroot/safe/home zroot/safe/persist
+   sudo zpool export zusb
+   ```
+
+   Expect ~1–2 hours for ~190 GB from a USB 2.5" HDD.
+
+4. Continue INSTALL.md from step 6, but install from the **restored** config
+   (`/mnt/persist/etc/nixos` after mounting) rather than the GitHub clone, so
+   any unpushed commits are included.
+5. After the first boot, the next plug-in of the USB HDD does a full re-seed
+   (the new zroot shares no snapshots with it); that's expected.
+
+## Set up (or replace) the USB backup drive
+
+The pool must exist before plugging in triggers anything. Find the disk's
+stable name, unmount whatever the desktop auto-mounted, wipe and create:
+
+```sh
+ls -l /dev/disk/by-id/ | grep -v part      # pick the ata-… or usb-… name of the USB disk
+DISK=/dev/disk/by-id/ata-TOSHIBA_MQ01ABF050_6443S4PFS
+udisksctl unmount -b "$DISK-part1"          # only if something is mounted
+sudo wipefs -a "$DISK-part1" "$DISK"
+sudo zpool create -o ashift=12 -o cachefile=none \
+  -O compression=zstd -O atime=off -O xattr=sa -O acltype=posixacl \
+  -O mountpoint=none -O canmount=off \
+  zusb "$DISK"
+sudo zfs create -o canmount=off zusb/backup
+sudo zpool export zusb
+```
+
+No pool-level encryption: everything received is raw-encrypted with the zroot
+key, so the drive only exposes dataset and snapshot names. Unplug and plug
+the drive back in to start the first (full) backup, or run `zbackup-usb`.
+
+### Check the USB copy is restorable
+
+Occasionally (and after the first backup), prove the data is actually
+readable — this loads the key in memory only and changes nothing on the drive:
+
+```sh
+sudo zpool import -d /dev/disk/by-id -N zusb
+sudo zfs load-key -L prompt zusb/backup/persist          # boot passphrase
+sudo mkdir -p /mnt/usbcheck
+sudo mount -t zfs -o ro,zfsutil zusb/backup/persist /mnt/usbcheck
+ls /mnt/usbcheck/etc/nixos/flake.nix /mnt/usbcheck/passwords/
+sudo umount /mnt/usbcheck
+sudo zfs unload-key zusb/backup/persist
+sudo zpool export zusb
+```
 
 ## Pool won't import after a hostId change
 

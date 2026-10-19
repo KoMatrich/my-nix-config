@@ -42,6 +42,9 @@ let
         { name = "zhealth"; cmd = "zpool status -x"; desc = "Pool health (silent = all good)"; }
         { name = "zsnaps"; cmd = "zfs list -t snapshot -o name,used,creation -s creation"; desc = "All snapshots, oldest first"; }
         { name = "zbackup-status"; cmd = "systemctl list-timers sanoid.timer 'syncoid-*' --all && zfs list -r -t snapshot -o name,creation zstorage/backup | tail -n 6"; desc = "Replication timers + latest backup snapshots on the SSD"; }
+        # Normally triggered by plugging the drive in (system/usb-backup.nix).
+        { name = "zbackup-usb"; cmd = "sudo systemctl start --no-block zbackup-usb.service && journalctl -fu zbackup-usb --since now"; desc = "Run the USB HDD backup now and follow its log (Ctrl+C stops following, not the backup)"; }
+        { name = "zbackup-usb-status"; cmd = "systemctl status zbackup-usb --no-pager -n 25"; desc = "Result and log of the last USB HDD backup"; }
       ];
     }
   ];

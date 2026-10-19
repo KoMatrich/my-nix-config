@@ -18,6 +18,7 @@
   { id = "glm"; }
   { id = "glm-5"; }
   { id = "glm-5.3"; }
+  { id = "glm-5.3-flash"; }
   { id = "gpt-oss-120b"; }
   { id = "kimi"; }
   { id = "kimi-k3"; }

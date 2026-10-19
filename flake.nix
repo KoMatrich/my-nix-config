@@ -58,6 +58,13 @@
     # update procedure. Exposed as pkgs.claude-desktop via its overlay.
     claude-desktop.url = "path:./pkgs/claude-desktop";
     claude-desktop.inputs.nixpkgs.follows = "nixpkgs";
+
+    # Herdr — agent runtime / terminal workspace manager (https://herdr.dev).
+    # Builds from source (Rust), so it deliberately does NOT follow our
+    # nixpkgs: upstream pins nixos-unstable plus the rust-overlay toolchain it
+    # is tested against. Exposes an overlay (applied in outputs below) and is
+    # installed as pkgs.herdr in home.nix. Bump by editing the tag here.
+    herdr.url = "github:herdrdev/herdr/v0.9.5";
   };
 
   outputs = {
@@ -72,6 +79,7 @@
     local-ci,
     pi-flake,
     claude-desktop,
+    herdr,
     ...
     }:
     {
@@ -81,7 +89,7 @@
         system = "x86_64-linux";
         specialArgs = { inherit nixpkgs-llama; };
         modules = [
-          { nixpkgs.overlays = [ claude-code-nix.overlays.default claude-desktop.overlays.default ]; }
+          { nixpkgs.overlays = [ claude-code-nix.overlays.default claude-desktop.overlays.default herdr.overlays.default ]; }
           disko.nixosModules.disko
           home-manager.nixosModules.home-manager
           impermanence.nixosModules.impermanence

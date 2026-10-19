@@ -39,6 +39,9 @@
       pkgs.claude-code
       pkgs.claude-desktop
       pkgs.aider-chat
+      # Herdr (herdr.dev) agent runtime; provided by the herdr flake's overlay
+      # (see flake.nix) and built from source there.
+      pkgs.herdr
       pkgs.jq
       pkgs.libnotify
 
@@ -71,6 +74,19 @@
       pkgs.arduino
       pkgs.freecad
       pkgs.net-tools
+
+      # Raspberry Pi Imager, for writing SD cards. nixos-26.05 ships 2.0.9;
+      # upstream is at 2.0.12, so version + src are overridden here. Drop the
+      # override once nixpkgs catches up (check `nix eval nixpkgs#rpi-imager.version`).
+      (pkgs.rpi-imager.overrideAttrs (old: rec {
+        version = "2.0.12";
+        src = pkgs.fetchFromGitHub {
+          owner = "raspberrypi";
+          repo = "rpi-imager";
+          tag = "v${version}";
+          hash = "sha256-oIq7+NxTh/IQH78xSfXLZeKx7uMJ3T7THychdb3QcZg=";
+        };
+      }))
 
       # opencode's bundled native file-watcher addon dlopen()s libstdc++.so.6
       # at runtime, which isn't on the default search path under Nix (no FHS).

@@ -64,6 +64,8 @@ not a network fetch on every boot.
 | `zhealth` | Pool health (silent = all good) |
 | `zsnaps` | All snapshots, oldest first |
 | `zbackup-status` | Replication timers + latest backup snapshots on the SSD |
+| `zbackup-usb` | Run the USB HDD backup now and follow its log (normally starts on plug-in) |
+| `zbackup-usb-status` | Result and log of the last USB HDD backup |
 | `fsdiff` | Every file on `/` that will be **erased on next reboot** |
 
 ## Impermanence workflow
@@ -98,6 +100,11 @@ sudo systemctl start syncoid-zroot-safe-home.service  # force a sync now
 sudo systemctl start syncoid-zroot-safe-persist.service
 journalctl -u syncoid-zroot-safe-home -e              # debug a failed sync
 ```
+
+**USB HDD (offline copy):** just plug the drive in. The backup starts by
+itself; wait for the "USB backup done — safe to unplug" notification (the
+pool is exported and the disk powered off by then). `zbackup-usb-status`
+shows the last result. Setup and restore: [RECOVERY.md](RECOVERY.md).
 
 ## Scrub (data integrity check)
 

@@ -11,6 +11,7 @@ Only explicitly persisted state survives.
 |---|---|---|---|
 | `/dev/nvme0n1` | 256 GB | fast | 1 GB ESP (`/boot`) + pool **`zroot`** |
 | `/dev/sda` | 512 GB | slow (SATA) | pool **`zstorage`** |
+| USB HDD (Toshiba MQ01ABF050) | 500 GB | slow (USB) | pool **`zusb`** — offline backup, plugged in occasionally |
 
 ## Pool `zroot` (NVMe — the system runs from here)
 
@@ -38,6 +39,20 @@ Only explicitly persisted state survives.
 services then refuse to start instead of re-downloading models onto the
 NVMe).
 
+## Pool `zusb` (external USB HDD — offline backup)
+
+| Dataset | Mounted at | Fate |
+|---|---|---|
+| `zusb/backup/home` | never mounted | Encrypted replica of `zroot/safe/home` |
+| `zusb/backup/persist` | never mounted | Encrypted replica of `zroot/safe/persist` (includes `/etc/nixos`) |
+
+Only imported while a backup runs: plugging the drive in starts
+`zbackup-usb.service`, which imports the pool, replicates, prunes, exports it
+and powers the disk off, then sends a desktop notification ("safe to
+unplug"). The pool has `cachefile=none`, so it is never imported at boot.
+Retention: 30 dailies plus the newest frequent/hourly snapshot (the
+incremental base for the next run). Config: `system/usb-backup.nix`.
+
 ## What survives what
 
 | Event | Result |
@@ -46,7 +61,8 @@ NVMe).
 | Accidental `rm` in /home | Restore from 15-min snapshots (see RECOVERY.md), up to 14 days back. |
 | NVMe dies | Reinstall on new disk; `/home` + `/persist` restored from `zstorage/backup/*` — at most ~15 min of work lost. Games re-download. |
 | SATA SSD dies | Nothing important lost. System runs fine; replication timers fail loudly until the disk is replaced. Games and ComfyUI models re-download. |
-| Both die at once | Data gone. Keep occasional external backups for the truly irreplaceable. |
+| Both die at once | Restore `/home` + `/persist` from the USB HDD (`zusb`) — as fresh as the last time it was plugged in. See RECOVERY.md. |
+| USB HDD dies / is lost | Nothing lost (the data on it is encrypted). Set up a new drive per RECOVERY.md. |
 
 ## Redundancy model
 
@@ -58,6 +74,11 @@ NVMe).
 - Replication uses **raw sends**: the copies on the SSD stay encrypted and
   the backup pool never has keys loaded.
 - Config: `system/replication.nix`. Status: `zbackup-status` alias.
+- **Offline copy**: on plug-in, syncoid raw-sends the same datasets to the
+  USB HDD (`zusb`). It runs with `--create-bookmark`, leaving a bookmark on
+  the source so the next run stays incremental even if the drive was
+  unplugged longer than the 14-day source retention. Status:
+  `zbackup-usb-status`; run manually: `zbackup-usb`.
 
 ## Encryption / key model
 
