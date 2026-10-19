@@ -115,6 +115,40 @@ zpool status              # shows last scrub result / progress
 sudo zpool scrub zroot    # start one manually
 ```
 
+## iPhone
+
+USB access and backups via libimobiledevice (`apps/iphone.nix`). Backups go
+to `~/Backups/iPhone`, so they're replicated with the rest of `/home`.
+
+| Command | What it does |
+|---|---|
+| `iphone-backup` | Back up over USB if plugged in, else over Wi-Fi (incremental; `iphone-backup --full` forces a full one) |
+| `iphone-wifi-sync on\|off\|status` | Allow/deny Wi-Fi connections — needs the phone on USB |
+| `ifuse ~/iPhone` / `fusermount -u ~/iPhone` | Mount / unmount the phone's media (photos etc.) |
+
+**One-time setup** (after `rebuild`):
+
+1. Plug the phone in via USB, unlock it, tap **Trust**, then `idevicepair pair`.
+   Pairing is persisted (`/var/lib/lockdown`), so this survives reboots.
+2. Optional but recommended: `idevicebackup2 encryption on` (asks for a
+   password). Only encrypted backups include saved passwords, Wi-Fi and
+   Health data. **Lose the password and the backup is useless.**
+3. `iphone-backup` — the first run is a full backup and takes a while.
+4. For Wi-Fi: `iphone-wifi-sync on`, unplug, then `idevice_id -n` should list
+   the phone (same network, phone unlocked/awake). After that `iphone-backup`
+   works wirelessly.
+
+**Restore:** `idevicebackup2 restore --system --settings ~/Backups/iPhone`
+(phone on USB; *Find My* must be off on the phone).
+
+**Wi-Fi not showing up?** Wi-Fi uses `usbmuxd2` instead of stock usbmuxd and
+depends on the iOS version, so it's best-effort; USB always works. Check
+`journalctl -u usbmuxd`, that `avahi-browse -rt _apple-mobdev2._tcp` sees the
+phone, and that `sudo grep WiFiMACAddress /var/lib/lockdown/*.plist` finds
+the pairing's Wi-Fi MAC (if not, re-run `idevicepair pair` over USB). If
+usbmuxd2 itself misbehaves, set `wifi = false` in `apps/iphone.nix` to go
+back to USB-only stock usbmuxd.
+
 ## Hyprland keys
 
 Defined in `desktop/hyprland.nix`. `Super` = Windows key.

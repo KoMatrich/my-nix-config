@@ -28,6 +28,7 @@
       ./apps/gnome-network-displays.nix
       ./apps/godot.nix
       ./apps/tailscale.nix
+      ./apps/iphone.nix         # iPhone USB access + `iphone-backup` (USB/Wi-Fi)
       ./apps/llm.nix
       
       # Desktop environment: import exactly ONE of these.

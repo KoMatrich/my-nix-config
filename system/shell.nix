@@ -55,6 +55,8 @@ let
     { name = "devshells"; desc = "List cached dev shells with last-used age and closure size"; }
     { name = "mkenvrc"; desc = "Create .envrc in the current project + direnv allow (makes its dev shell persistent)"; }
     { name = "mkflake"; desc = "Guided wizard: scaffold flake.nix (pick language + packages) + .envrc for a new project"; }
+    { name = "iphone-backup"; desc = "Back up the iPhone to ~/Backups/iPhone over USB, or Wi-Fi if not plugged in (apps/iphone.nix)"; }
+    { name = "iphone-wifi-sync"; desc = "on/off/status: allow Wi-Fi backups (run once with the phone on USB)"; }
     { name = "pi-models-refresh"; desc = "Regenerate /etc/nixos/pi-models.nix from the live e-INFRA model list (then commit + rebuild)"; }
     { name = "cheat"; desc = "This help"; }
   ];
