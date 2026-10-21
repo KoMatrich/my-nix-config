@@ -28,7 +28,10 @@ in
 
   systemd.services.cpu-profile-clamp = {
     description = "Clamp intel_pstate to match the active power profile";
-    wantedBy = [ "multi-user.target" ];
+    # graphical.target, not multi-user.target: upstream PPD is ordered
+    # After=multi-user.target, so pulling the clamp into multi-user.target
+    # (it is After/BindsTo PPD) forms an ordering cycle and systemd drops it.
+    wantedBy = [ "graphical.target" ];
     after = [ "power-profiles-daemon.service" ];
     # BindsTo rather than Requires: if PPD goes away there is nothing to
     # follow, and Restart=always brings us back once it returns.

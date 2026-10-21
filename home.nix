@@ -1,4 +1,4 @@
-{ config, pkgs, voice2text, local-ci, pi-flake, ... }:
+{ config, lib, pkgs, voice2text, local-ci, pi-flake, ... }:
 
 {
     imports = [
@@ -136,10 +136,11 @@
     programs.pi-coding-agent = {
       enable = true;
 
-      extensions = [
-        "git:github.com/obra/superpowers"
-        "npm:pi-subagents"
-      ];
+      # Left empty on purpose: the module runs `pi install` on every
+      # activation with no failure tolerance, so a boot-time activation
+      # (network not up yet, NetworkManager-wait-online is disabled) failed
+      # the whole home-manager unit. Installed by piExtensions below instead.
+      extensions = [ ];
 
       agentFiles.models = {
         value = {
@@ -155,6 +156,16 @@
         };
       };
     };
+
+    # Best-effort Pi extension install/refresh: an offline boot keeps the
+    # already-cached copies instead of failing activation.
+    home.activation.piExtensions = lib.hm.dag.entryAfter [ "piCodingAgentConfig" ] ''
+      for ext in git:github.com/obra/superpowers npm:pi-subagents; do
+        echo "[Pi] installing extension: $ext"
+        PATH="${pkgs.gitMinimal}/bin:$PATH" ${config.programs.pi-coding-agent.package}/bin/pi install "$ext" 2>&1 \
+          || echo "[Pi] could not install $ext (offline?), keeping cached copy"
+      done
+    '';
 
     programs.direnv.enable = true;
     programs.vscode = {
