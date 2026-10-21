@@ -1,10 +1,9 @@
-{ config, lib, pkgs, voice2text, local-ci, pi-flake, ... }:
+{ config, pkgs, voice2text, local-ci, ... }:
 
 {
     imports = [
       voice2text.homeModules.default
       local-ci.homeModules.default
-      pi-flake.homeManagerModules.default
     ];
 
     # Push-to-talk dictation; runs as a user service from graphical-session.
@@ -126,46 +125,6 @@
       enable = true;
       enableGitIntegration = true;
     };
-
-    # Pi coding agent, installed globally (the module adds it to home.packages)
-    # together with Superpowers and the pi-subagents delegation extension.
-    # `agentFiles.models` is a read-only symlink into the Nix store declaring the
-    # same e-INFRA gateway opencode uses; Pi runs the apiKey command at request
-    # time, so the token never lands in the store. The model list lives in
-    # ./pi-models.nix and is refreshed with `pi-models-refresh` (then commit).
-    programs.pi-coding-agent = {
-      enable = true;
-
-      # Left empty on purpose: the module runs `pi install` on every
-      # activation with no failure tolerance, so a boot-time activation
-      # (network not up yet, NetworkManager-wait-online is disabled) failed
-      # the whole home-manager unit. Installed by piExtensions below instead.
-      extensions = [ ];
-
-      agentFiles.models = {
-        value = {
-          providers = {
-            e-infra = {
-              name = "LLM AI e-infra";
-              baseUrl = "https://llm.ai.e-infra.cz/v1";
-              api = "openai-completions";
-              apiKey = "!cat /home/komatrich/.config/opencode/einfra-token";
-              models = import ./pi-models.nix;
-            };
-          };
-        };
-      };
-    };
-
-    # Best-effort Pi extension install/refresh: an offline boot keeps the
-    # already-cached copies instead of failing activation.
-    home.activation.piExtensions = lib.hm.dag.entryAfter [ "piCodingAgentConfig" ] ''
-      for ext in git:github.com/obra/superpowers npm:pi-subagents; do
-        echo "[Pi] installing extension: $ext"
-        PATH="${pkgs.gitMinimal}/bin:$PATH" ${config.programs.pi-coding-agent.package}/bin/pi install "$ext" 2>&1 \
-          || echo "[Pi] could not install $ext (offline?), keeping cached copy"
-      done
-    '';
 
     programs.direnv.enable = true;
     programs.vscode = {
