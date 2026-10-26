@@ -23,6 +23,7 @@
       ./apps/virtualization.nix
       ./apps/steam.nix
       ./apps/heroic.nix
+      ./apps/prismlauncher.nix
       ./apps/devshells.nix
       ./apps/owon-vds1022.nix
       ./apps/gnome-network-displays.nix
