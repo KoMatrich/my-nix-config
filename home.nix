@@ -1,4 +1,4 @@
-{ config, pkgs, local-ci, ... }:
+{ config, pkgs, local-ci, orca, ... }:
 
 {
     imports = [
@@ -37,6 +37,10 @@
       # Herdr (herdr.dev) agent runtime; provided by the herdr flake's overlay
       # (see flake.nix) and built from source there.
       pkgs.herdr
+      # Orca agentic development environment; from the orca flake input (see
+      # flake.nix). Not via its overlay, which would shadow nixpkgs' `orca`
+      # screen reader.
+      orca.packages.${pkgs.stdenv.hostPlatform.system}.default
       pkgs.jq
       pkgs.libnotify
 

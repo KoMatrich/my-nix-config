@@ -53,6 +53,14 @@
     # is tested against. Exposes an overlay (applied in outputs below) and is
     # installed as pkgs.herdr in home.nix. Bump by editing the tag here.
     herdr.url = "github:herdrdev/herdr/v0.9.5";
+
+    # Orca — agentic development environment (https://onorca.dev). Upstream
+    # only ships an AppImage; this flake repackages it. Installed directly in
+    # home.nix rather than via its overlay: the overlay's pkgs.orca would
+    # shadow nixpkgs' `orca` (the GNOME screen reader) and drop accessibility
+    # packages from the closure.
+    orca.url = "github:stslex/orca-nix";
+    orca.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = {
@@ -66,6 +74,7 @@
     local-ci,
     claude-desktop,
     herdr,
+    orca,
     ...
     }:
     {
@@ -81,8 +90,8 @@
           impermanence.nixosModules.impermanence
           comfyui-nix.nixosModules.default
           # home.nix is imported by configuration.nix, which has no flake
-          # inputs in scope; hand local-ci through to it.
-          { home-manager.extraSpecialArgs = { inherit local-ci; }; }
+          # inputs in scope; hand local-ci and orca through to it.
+          { home-manager.extraSpecialArgs = { inherit local-ci orca; }; }
           ./configuration.nix
         ];
       };
