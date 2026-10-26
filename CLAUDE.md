@@ -27,7 +27,7 @@ Aliases (`rebuild`, `update`, `gc`, `zhealth`, `zsnaps`, `zbackup-status`, `devs
 - `apps/*.nix` — optional software/features (steam, virtualization, llm, devshells, tailscale, ...)
 - `desktop/*.nix` — desktop environment; **exactly one** of `gnome.nix` / `hyprland.nix` is imported at a time in `configuration.nix`, the other is commented out
 - `system/*.nix` — core OS behavior (zfs, firewall, power, sleep, shell, replication, zerotier)
-- `home.nix` — home-manager config for user `komatrich`, imported via `home-manager.users.komatrich` in `configuration.nix` (it has no flake inputs in scope itself; `voice2text`/`local-ci` are threaded in via `home-manager.extraSpecialArgs` in `flake.nix`)
+- `home.nix` — home-manager config for user `komatrich`, imported via `home-manager.users.komatrich` in `configuration.nix` (it has no flake inputs in scope itself; `local-ci` is threaded in via `home-manager.extraSpecialArgs` in `flake.nix`)
 
 **Disk/impermanence model** ("erase your darlings" — full detail in `docs/DISK-LAYOUT.md`): root (`/`) is ZFS-rolled-back to an empty snapshot on every boot; only `/home`, `/persist`, `/nix` and `/games` survive. If a change needs a path outside `/home` to persist across reboots, add it to `apps/impermanence.nix` — find what needs persisting with the `fsdiff` alias. `/etc/nixos` itself lives on `/persist` (bind-mounted), which is why the git repo survives a reboot.
 
@@ -35,7 +35,7 @@ Aliases (`rebuild`, `update`, `gc`, `zhealth`, `zsnaps`, `zbackup-status`, `devs
 
 **Flake inputs with non-obvious pinning** (see comments in `flake.nix` for the why on each):
 - `comfyui-nix` and `nixpkgs-llama` deliberately do **not** follow the main `nixpkgs` — they need newer CUDA-adjacent packages than `nixos-26.05` ships.
-- `voice2text` and `local-ci` are `git+file:///home/...` inputs pointing at sibling repos under `~/Tools/`. Changes there need to be **committed** in that repo, then picked up here with `nix flake update voice2text` / `nix flake update local-ci` — editing those repos' working tree alone does nothing for this flake.
+- `local-ci` is a `git+file:///home/...` input pointing at a sibling repo under `~/Tools/`. Changes there need to be **committed** in that repo, then picked up here with `nix flake update local-ci` — editing that repo's working tree alone does nothing for this flake.
 - `claude-code-nix` supplies an overlay (tracks upstream Claude Code releases faster than nixpkgs) applied in the `outputs` block of `flake.nix`.
 
 **Dev shells for other projects** (not this repo): `apps/devshells.nix` implements persistent nix-direnv dev shells with two independent cleanup timers (30-day shell expiry, 60-day `node_modules` expiry) that exist specifically because `nh clean`'s normal 7-day window would otherwise kill dev shells too aggressively. Onboarding a project is `mkflake` (new) or `mkenvrc` (existing `flake.nix`), not manual `.envrc` editing.

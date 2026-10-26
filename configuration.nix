@@ -151,10 +151,6 @@
   users.users.komatrich = {
     isNormalUser = true;
     description = "KoMatrich";
-    # "input" lets voice2text read /dev/input/event* directly for its
-    # push-to-talk key. Under Wayland an X11/XRecord listener only sees keys
-    # while an XWayland window has focus, which is almost never. Note this also
-    # means any process running as this user can read all keyboard input.
     extraGroups = [ "networkmanager" "wheel" "dialout" "input" ];
     hashedPasswordFile = "/persist/passwords/komatrich";
   };

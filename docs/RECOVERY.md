@@ -166,8 +166,8 @@ reproducible.
 `zusb` holds raw (still encrypted) replicas of `zroot/safe/{home,persist}`
 as of the last time the drive was plugged in. `/persist` contains
 `/etc/nixos` with its full git history and `flake.lock`, so rebuilding from
-it reproduces the exact system, and `/home` contains `~/Tools/{voice2text,local-ci}`,
-which the flake's `git+file` inputs need.
+it reproduces the exact system, and `/home`, which
+the flake's `git+file` inputs need.
 
 1. Replace the disks, boot the NixOS live ISO, follow
    [INSTALL.md](INSTALL.md) steps 1–5 (the GitHub clone is fine for disko;

@@ -33,13 +33,6 @@
     # Deliberately NOT following our nixpkgs: the newer llama.cpp is the point.
     nixpkgs-llama.url = "github:NixOS/nixpkgs/ef34387ddd751e1ab8857adf4676492d32eb24ec";
 
-    # Push-to-talk Whisper dictation, autostarted as a user service.
-    # git+file rather than path so .venv/build artefacts stay out of the store;
-    # main.py must be committed for a rebuild to pick it up. The follows is
-    # required - a second nixpkgs would mean a second CUDA CTranslate2 build.
-    voice2text.url = "git+file:///home/komatrich/Tools/voice2text";
-    voice2text.inputs.nixpkgs.follows = "nixpkgs";
-
     # On-demand CI from this PC: `local-ci build` (images to ghcr.io) and
     # `local-ci test` (tests for pull requests), as user timers that ask before
     # running.
@@ -70,7 +63,6 @@
     disko,
     comfyui-nix,
     claude-code-nix,
-    voice2text,
     local-ci,
     claude-desktop,
     herdr,
@@ -89,8 +81,8 @@
           impermanence.nixosModules.impermanence
           comfyui-nix.nixosModules.default
           # home.nix is imported by configuration.nix, which has no flake
-          # inputs in scope; hand voice2text and local-ci through to it.
-          { home-manager.extraSpecialArgs = { inherit voice2text local-ci; }; }
+          # inputs in scope; hand local-ci through to it.
+          { home-manager.extraSpecialArgs = { inherit local-ci; }; }
           ./configuration.nix
         ];
       };

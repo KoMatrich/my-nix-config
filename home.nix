@@ -1,13 +1,9 @@
-{ config, pkgs, voice2text, local-ci, ... }:
+{ config, pkgs, local-ci, ... }:
 
 {
     imports = [
-      voice2text.homeModules.default
       local-ci.homeModules.default
     ];
-
-    # Push-to-talk dictation; runs as a user service from graphical-session.
-    services.voice2text.enable = true;
 
     # The `local-ci` command, plus user timers that check GitHub and ask
     # (desktop notification) before building images or running PR tests.
