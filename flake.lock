@@ -315,7 +315,8 @@
         "impermanence": "impermanence",
         "local-ci": "local-ci",
         "nixpkgs": "nixpkgs_5",
-        "nixpkgs-llama": "nixpkgs-llama"
+        "nixpkgs-llama": "nixpkgs-llama",
+        "t3code": "t3code"
       }
     },
     "rust-overlay": {
@@ -351,6 +352,26 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "t3code": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793444916,
+        "narHash": "sha256-Z6d+T2+Si0bwX1FDlJshNJzMHboJfJD9vioBcRCeURc=",
+        "owner": "KoMatrich",
+        "repo": "t3code-flake",
+        "rev": "ce672e2d8aadc6c14f6533a3be174d62ab9f854b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "KoMatrich",
+        "repo": "t3code-flake",
         "type": "github"
       }
     }

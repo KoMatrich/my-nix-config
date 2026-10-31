@@ -34,6 +34,15 @@
       pkgs.claude-code
       pkgs.claude-desktop
       pkgs.aider-chat
+      # T3 Code (t3.codes) desktop GUI for coding agents, from the t3code flake
+      # overlay (see flake.nix; nixpkgs' t3code is old and needs an EOL Electron).
+      # The launcher bundles claude and gh on its PATH; sign in with `claude`
+      # and `gh auth login`. Codex is on upstream by default; we don't use it.
+      (pkgs.t3code-desktop.override {
+        enableClaude = true;
+        enableGitHub = true;
+        enableCodex = false;
+      })
       # Herdr (herdr.dev) agent runtime; provided by the herdr flake's overlay
       # (see flake.nix) and built from source there.
       pkgs.herdr

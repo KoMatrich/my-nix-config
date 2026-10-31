@@ -54,6 +54,13 @@
     # installed as pkgs.herdr in home.nix. Bump by editing the tag here.
     herdr.url = "github:herdrdev/herdr/v0.9.5";
 
+    # T3 Code (t3.codes) -- our fork of clementpoiret/t3code-flake, which wraps
+    # the official release AppImage and bumps itself daily. Applied as an
+    # overlay below and installed as pkgs.t3code-desktop in home.nix. Following
+    # our nixpkgs is safe: the overlay builds against the system package set.
+    # Pick up a new T3 Code release with `nix flake update t3code`.
+    t3code.url = "github:KoMatrich/t3code-flake";
+    t3code.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = {
@@ -67,6 +74,7 @@
     local-ci,
     claude-desktop,
     herdr,
+    t3code,
     ...
     }:
     {
@@ -76,7 +84,7 @@
         system = "x86_64-linux";
         specialArgs = { inherit nixpkgs-llama; };
         modules = [
-          { nixpkgs.overlays = [ claude-code-nix.overlays.default claude-desktop.overlays.default herdr.overlays.default ]; }
+          { nixpkgs.overlays = [ claude-code-nix.overlays.default claude-desktop.overlays.default herdr.overlays.default t3code.overlays.default ]; }
           disko.nixosModules.disko
           home-manager.nixosModules.home-manager
           impermanence.nixosModules.impermanence
