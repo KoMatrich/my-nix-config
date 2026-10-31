@@ -190,8 +190,15 @@
   # CUDA packages are unfree, so cache.nixos.org never has them (llama-cpp
   # with cudaSupport, ollama-cuda). The NixOS CUDA team's cache does, as long
   # as we don't change cudaCapabilities (that changes the store hash).
-  nix.settings.substituters = [ "https://cache.nixos-cuda.org" ];
-  nix.settings.trusted-public-keys = [ "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M=" ];
+  #
+  # ros.cachix.org is nix-ros-overlay's binary cache (~/Repos/ros-test/nix).
+  # Without it here nix ignores the flake's extra-substituters (we're not a
+  # trusted user) and compiles ROS 2 from source.
+  nix.settings.substituters = [ "https://cache.nixos-cuda.org" "https://ros.cachix.org" ];
+  nix.settings.trusted-public-keys = [
+    "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
+    "ros.cachix.org-1:dSyZxI8geDCJrwgvCOHDoAfOm5sV1wCPjBkKL+38Rvo="
+  ];
 
   services.thermald.enable = true;
 
