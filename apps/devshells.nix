@@ -152,7 +152,7 @@ in
         1) lang_pkgs="rustc cargo rust-analyzer clippy rustfmt" ;;
         2) lang_pkgs="go gopls" ;;
         3) lang_pkgs="python3 python3Packages.pip" ;;
-        4) lang_pkgs="nodejs_22 typescript nodePackages.typescript-language-server" ;;
+        4) lang_pkgs="nodejs_22 typescript typescript-language-server" ;;
         5) lang_pkgs="jdk17 gradle" ;;
         6) lang_pkgs="gcc gnumake cmake pkg-config" ;;
         *) lang_pkgs="" ;;
