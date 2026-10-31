@@ -28,6 +28,7 @@
       ./apps/owon-vds1022.nix
       ./apps/gnome-network-displays.nix
       ./apps/godot.nix
+      ./apps/quest.nix          # Meta Quest dev: adb + WiVRn streaming
       ./apps/tailscale.nix
       ./apps/iphone.nix         # iPhone USB access + `iphone-backup` (USB/Wi-Fi)
       ./apps/llm.nix
