@@ -9,7 +9,10 @@
   # adb. There is no programs.adb in nixos-26.05: systemd 258 tags Android
   # devices with `uaccess` by itself, so the package alone is enough (see
   # the programs.adb.enable removal message in nixos/modules/rename.nix).
-  environment.systemPackages = [ pkgs.android-tools ];
+  # unzip: Unity Hub's module installer shells out to it (it is not in the
+  # Hub's FHS env), so installing Android OpenJDK/SDK fails with
+  # "Command 'unzip' not found in PATH" without it.
+  environment.systemPackages = [ pkgs.android-tools pkgs.unzip ];
 
   # WiVRn: OpenXR runtime that streams to the Quest's WiVRn client app. Not
   # started at login; run `systemctl --user start wivrn` when wanted. The

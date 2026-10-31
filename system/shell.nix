@@ -57,6 +57,7 @@ let
     { name = "mkflake"; desc = "Guided wizard: scaffold flake.nix (pick language + packages) + .envrc for a new project"; }
     { name = "iphone-backup"; desc = "Back up the iPhone to ~/Backups/iPhone over USB, or Wi-Fi if not plugged in (apps/iphone.nix)"; }
     { name = "iphone-wifi-sync"; desc = "on/off/status: allow Wi-Fi backups (run once with the phone on USB)"; }
+    { name = "iphone-sync"; desc = "Copy new iPhone photos to ~/Pictures/<phone name> + daily backup; runs automatically every 30 min when the phone is reachable"; }
     { name = "cheat"; desc = "This help"; }
   ];
 

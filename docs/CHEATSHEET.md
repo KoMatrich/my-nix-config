@@ -109,6 +109,7 @@ to `~/Backups/iPhone`, so they're replicated with the rest of `/home`.
 |---|---|
 | `iphone-backup` | Back up over USB if plugged in, else over Wi-Fi (incremental; `iphone-backup --full` forces a full one) |
 | `iphone-wifi-sync on\|off\|status` | Allow/deny Wi-Fi connections — needs the phone on USB |
+| `iphone-sync` | Copy new photos/videos to `~/Pictures/<phone name>/` (nothing is deleted from the phone), then back up if the last backup is >24h old. Runs by itself every 30 min via the `iphone-sync` user timer whenever the phone is reachable; logs: `journalctl --user -u iphone-sync` |
 | `ifuse ~/iPhone` / `fusermount -u ~/iPhone` | Mount / unmount the phone's media (photos etc.) |
 
 **One-time setup** (after `rebuild`):
