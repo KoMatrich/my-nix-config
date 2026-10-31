@@ -200,6 +200,14 @@ in
         printf '.envrc already exists, not modified\n'
       fi
 
+      # Flakes only see git-tracked files: intent-to-add so `use flake` finds
+      # flake.nix, and keep nix-direnv's cache dir out of the repo.
+      if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        grep -qxF '.direnv/' .gitignore 2>/dev/null || printf '.direnv/\n' >> .gitignore
+        git add -N flake.nix .envrc || true
+        printf 'git add -N flake.nix .envrc (+ .direnv/ in .gitignore)\n'
+      fi
+
       printf "\nDone. Run 'direnv reload' or re-enter the directory to build the shell.\n"
       printf "Edit flake.nix to add/remove packages, then run 'direnv reload'.\n"
     '')
