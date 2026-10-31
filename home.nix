@@ -43,6 +43,10 @@
         enableGitHub = true;
         enableCodex = false;
       })
+      # T3 Code's device hub lazily runs `npm install agent-device@<ver>` into
+      # ~/.t3/tools/agent-device; without npm on PATH that spawn fails (NotFound)
+      # and the Device panel reports "device hub not installed".
+      pkgs.nodejs
       # Herdr (herdr.dev) agent runtime; provided by the herdr flake's overlay
       # (see flake.nix) and built from source there.
       pkgs.herdr
