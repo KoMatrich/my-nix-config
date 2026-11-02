@@ -11,13 +11,13 @@
     # see ~/Tools/local-ci/README.md and docs/operations.md.
     services.local-ci = {
       enable = true;
-      configFile = "/home/komatrich/Tools/local-ci/config.toml";
+      configFile = "${config.home.homeDirectory}/Tools/local-ci/config.toml";
       build.enable = false; # local-ci-build: new commits missing from the registry
       test.enable = false; # local-ci-test: enable once config.toml has a [repo.test]
     };
 
-    home.username = "komatrich";
-    home.homeDirectory = "/home/komatrich";
+    # home.username / home.homeDirectory are set by the home-manager NixOS
+    # module from users.users.<name> (configuration.nix).
 
     home.packages = [
       pkgs.vlc

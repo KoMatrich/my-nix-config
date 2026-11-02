@@ -205,7 +205,10 @@ the flake's `git+file` inputs need.
 
 4. Continue INSTALL.md from step 6, but install from the **restored** config
    (`/mnt/persist/etc/nixos` after mounting) rather than the GitHub clone, so
-   any unpushed commits are included.
+   any unpushed commits are included. `/home` is restored too, so point the
+   `local-ci` input at it:
+   `--override-input local-ci git+file:///mnt/home/komatrich/Tools/local-ci`
+   (see INSTALL.md step 8).
 5. After the first boot, the next plug-in of the USB HDD does a full re-seed
    (the new zroot shares no snapshots with it); that's expected.
 

@@ -17,7 +17,7 @@ NixOS system flake for host `BLACK-BOX` (single-user desktop/workstation, i5-930
 | `gc` | `nh clean all --keep-since 7d --keep 5 --no-direnv` — prune old generations. Dev-shell GC roots are excluded and expire on their own 30-day timer (`apps/devshells.nix`). |
 | `cheat` | In-terminal listing of every alias below, generated from the same source as `docs/CHEATSHEET.md` — the two cannot drift apart. |
 
-There is no test suite or linter configured for this repo; correctness is "does it evaluate and does `nh os build` succeed."
+There is no test suite or linter configured for this repo; correctness is "does it evaluate and does `nh os build` succeed." GitHub Actions (`.github/workflows/check.yml`) evaluates every push and builds the full system (incl. specialisations) on pull requests; it overrides `local-ci` with the no-op stub in `ci/local-ci-stub/` because the real input is a local path. Reproduce locally with `nix flake check --override-input local-ci path:./ci/local-ci-stub`. `nix fmt <file>` formats with nixfmt (not yet applied repo-wide).
 
 Aliases (`rebuild`, `update`, `gc`, `zhealth`, `zsnaps`, `zbackup-status`, `devshell-clean`, etc.) are all defined in one place, `system/shell.nix`, as a single `aliasGroups` list that generates both the real zsh aliases and the `cheat`/`docs/CHEATSHEET.md` text — add a new alias there, not directly in `.zshrc` or only in the docs.
 
@@ -25,8 +25,8 @@ Aliases (`rebuild`, `update`, `gc`, `zhealth`, `zsnaps`, `zbackup-status`, `devs
 
 **Module graph**: `flake.nix` defines one `nixosConfigurations.BLACK-BOX` output built from `configuration.nix`, which imports every other module by path, grouped by directory:
 - `apps/*.nix` — optional software/features (steam, virtualization, llm, devshells, tailscale, ...)
-- `desktop/*.nix` — desktop environment; **exactly one** of `gnome.nix` / `hyprland.nix` is imported at a time in `configuration.nix`, the other is commented out
-- `system/*.nix` — core OS behavior (zfs, firewall, power, sleep, shell, replication, zerotier)
+- `desktop/*.nix` — desktop environment. Both `gnome.nix` and `hyprland.nix` are always imported (via `desktop/default.nix`) and gated on `desktop.environment`; GNOME is the default system, Hyprland is the `hyprland` specialisation (second boot entry). Add desktop-specific settings inside the right file's `lib.mkIf`, not in `configuration.nix`.
+- `system/*.nix` — core OS behavior (zfs, firewall, power, sleep, shell, replication, zerotier, notify). `system/notify.nix` provides `notify-failure@%n.service` — add `systemd.services.<name>.onFailure = [ "notify-failure@%n.service" ];` to anything that should alert on failure. The user name is `config.local.user` (`system/user.nix`); use it instead of hardcoding `komatrich`.
 - `home.nix` — home-manager config for user `komatrich`, imported via `home-manager.users.komatrich` in `configuration.nix` (it has no flake inputs in scope itself; `local-ci` is threaded in via `home-manager.extraSpecialArgs` in `flake.nix`)
 
 **Disk/impermanence model** ("erase your darlings" — full detail in `docs/DISK-LAYOUT.md`): root (`/`) is ZFS-rolled-back to an empty snapshot on every boot; only `/home`, `/persist`, `/nix` and `/games` survive. If a change needs a path outside `/home` to persist across reboots, add it to `apps/impermanence.nix` — find what needs persisting with the `fsdiff` alias. `/etc/nixos` itself lives on `/persist` (bind-mounted), which is why the git repo survives a reboot.
@@ -34,7 +34,7 @@ Aliases (`rebuild`, `update`, `gc`, `zhealth`, `zsnaps`, `zbackup-status`, `devs
 **Two ZFS pools**: `zroot` (NVMe, the live system + `/home`/`/persist`) and `zstorage` (SATA SSD, Steam library + encrypted raw-send replica of `zroot/safe/{home,persist}` via sanoid/syncoid every 15 min, config in `system/replication.nix`). See `docs/DISK-LAYOUT.md` for the full redundancy/encryption model, `docs/RECOVERY.md` for disk-failure procedures, `docs/INSTALL.md` for a from-scratch reinstall.
 
 **Flake inputs with non-obvious pinning** (see comments in `flake.nix` for the why on each):
-- `comfyui-nix` and `nixpkgs-llama` deliberately do **not** follow the main `nixpkgs` — they need newer CUDA-adjacent packages than `nixos-26.05` ships.
+- `nixpkgs-llama` deliberately does **not** follow the main `nixpkgs` — it needs a newer llama.cpp than `nixos-26.05` ships.
 - `local-ci` is a `git+file:///home/...` input pointing at a sibling repo under `~/Tools/`. Changes there need to be **committed** in that repo, then picked up here with `nix flake update local-ci` — editing that repo's working tree alone does nothing for this flake.
 - `claude-code-nix` supplies an overlay (tracks upstream Claude Code releases faster than nixpkgs) applied in the `outputs` block of `flake.nix`.
 
@@ -42,7 +42,7 @@ Aliases (`rebuild`, `update`, `gc`, `zhealth`, `zsnaps`, `zbackup-status`, `devs
 
 ## Known gotchas
 
-- **`sudo env ...` can silently no-op.** `environment.localBinInPath = true` puts `~/.local/bin` ahead of system bins; if `~/.local/bin/env` exists (e.g. uv's PATH-setup snippet, not coreutils `env`) and has any executable bit, `sudo` resolves to it instead — it sets a var and exits 0 without running the real command. This is exactly why `rebuild`/`update` are wrapper scripts that verify the generation actually changed, rather than trusting the exit code. If a switch "succeeds" but nothing changed, check `ls -l ~/.local/bin/env` and verify with `readlink -f /run/current-system`.
+- **`sudo env ...` used to silently no-op.** `environment.localBinInPath = true` puts `~/.local/bin` ahead of system bins, and sudo used to inherit that PATH, so a `~/.local/bin/env` (e.g. uv's PATH-setup snippet) ran instead of coreutils `env` and exited 0 without running the real command. sudo now has a fixed `secure_path` (`configuration.nix`), which closes both that and the privilege-escalation hole; `rebuild`/`update` still verify the generation actually landed, rather than trusting the exit code. If a switch "succeeds" but nothing changed, verify with `readlink -f /run/current-system` and check `sudo sh -c 'echo $PATH'`.
 - **A project's own dev shell can shadow system-managed tools.** If a system tool (e.g. `claude`) looks stale right after a successful rebuild, run `command -v <tool>` — a `/nix/store/...` path not reached via `/etc/profiles/per-user/<user>/bin` means an active `nix develop`/direnv shell in some other project owns it, not `/etc/nixos`. Don't put system-wide tools in a project's own `devShells.default`.
 - **Verify NixOS option/package names with the `nix` MCP tool** (mcp-nixos, configured globally in `~/.claude.json`) before writing them into `.nix` files — don't guess option paths.
 
