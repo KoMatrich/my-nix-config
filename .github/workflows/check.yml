@@ -1,0 +1,87 @@
+# Is the configuration still buildable?
+#
+#   eval  (every push and PR, ~minutes): the flake.lock is consistent, the
+#         whole system -- including the hyprland and nvidia-open
+#         specialisations and home-manager -- evaluates, and every derivation
+#         instantiates. Catches renamed/removed options, typos, bad merges.
+#   build (PRs + manual "Run workflow"): actually builds the full system
+#         closure, which also catches broken hashes, failing builds and
+#         packages missing from the binary caches. Slow (it downloads tens of
+#         GB) and needs most of the runner's disk, hence not on every push.
+#
+# local-ci is a git+file input that only exists on BLACK-BOX, so both jobs
+# swap in the no-op stub from ci/local-ci-stub (never written to flake.lock).
+name: check
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  OVERRIDE: --override-input local-ci path:./ci/local-ci-stub
+  TOPLEVEL: .#nixosConfigurations.BLACK-BOX.config.system.build.toplevel
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            extra-substituters = https://cache.nixos-cuda.org
+            extra-trusted-public-keys = cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M=
+
+      - name: flake.lock is consistent with flake.nix
+        # Re-lock (only the stub can change) and compare everything but the
+        # local-ci node: a hand-edited or stale lock shows up as a diff.
+        run: |
+          jq -S 'del(.nodes["local-ci"])' flake.lock > /tmp/before.json
+          nix flake lock $OVERRIDE
+          jq -S 'del(.nodes["local-ci"])' flake.lock > /tmp/after.json
+          git checkout flake.lock
+          diff -u /tmp/before.json /tmp/after.json
+
+      - name: nix flake check (evaluate everything)
+        run: nix flake check --no-build --no-write-lock-file $OVERRIDE
+
+      - name: What a build would fetch / compile
+        run: nix build --dry-run --no-write-lock-file $OVERRIDE "$TOPLEVEL" 2>&1 | tail -n 60
+
+  build:
+    needs: eval
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Free disk space
+        # The closure (CUDA, Blender, LibreOffice, Steam, ...) does not fit in
+        # the ~14 GB a stock runner has free.
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache \
+            /usr/local/share/boost /usr/local/share/powershell /usr/share/swift /usr/local/.ghcup
+          sudo docker image prune --all --force >/dev/null || true
+          df -h /
+
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            extra-substituters = https://cache.nixos-cuda.org
+            extra-trusted-public-keys = cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M=
+            keep-going = true
+
+      - name: Build the full system
+        run: nix build --no-link --print-build-logs --no-write-lock-file $OVERRIDE "$TOPLEVEL"
+
+      - name: Disk usage
+        if: always()
+        run: df -h / && du -sh /nix/store
