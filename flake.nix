@@ -15,14 +15,15 @@
     home-manager.url = "github:nix-community/home-manager/release-26.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     
+    # impermanence's own nixpkgs/home-manager inputs are only used by its
+    # tests; follow ours so the lock does not carry two more nixpkgs copies.
     impermanence.url = "github:nix-community/impermanence";
+    impermanence.inputs.nixpkgs.follows = "nixpkgs";
+    impermanence.inputs.home-manager.follows = "home-manager";
 
-    # ComfyUI with CUDA support (uses pre-built PyTorch wheels).
-    # Intentionally NOT following our nixpkgs: upstream pins nixos-unstable
-    # and its CUDA packages are built/tested against that.
-    comfyui-nix.url = "github:utensils/comfyui-nix";
-
-    # Tracks upstream releases faster than nixpkgs.
+    # Tracks upstream releases faster than nixpkgs. Deliberately NOT following
+    # our nixpkgs: its overlay builds against our package set anyway, and the
+    # unfollowed lock entry is only what upstream tests/caches against.
     claude-code-nix.url = "github:sadjow/claude-code-nix";
 
     # llama.cpp with DSpark speculative decoding (--spec-type draft-dspark,
@@ -38,14 +39,11 @@
     # running.
     # git+file, so changes must be committed there and then picked up with
     # `nix flake update local-ci`.
+    # That path only exists on BLACK-BOX: GitHub Actions and a from-scratch
+    # install evaluate with `--override-input local-ci path:./ci/local-ci-stub`
+    # instead (see .github/workflows/check.yml and docs/INSTALL.md).
     local-ci.url = "git+file:///home/komatrich/Tools/local-ci";
     local-ci.inputs.nixpkgs.follows = "nixpkgs";
-
-    # Claude Desktop (Anthropic's Linux beta). Only shipped as a .deb, so this
-    # in-repo flake repackages it; see pkgs/claude-desktop/flake.nix for the
-    # update procedure. Exposed as pkgs.claude-desktop via its overlay.
-    claude-desktop.url = "path:./pkgs/claude-desktop";
-    claude-desktop.inputs.nixpkgs.follows = "nixpkgs";
 
     # Herdr — agent runtime / terminal workspace manager (https://herdr.dev).
     # Builds from source (Rust), so it deliberately does NOT follow our
@@ -69,32 +67,44 @@
     home-manager,
     impermanence,
     disko,
-    comfyui-nix,
     claude-code-nix,
     local-ci,
-    claude-desktop,
     herdr,
     t3code,
     ...
     }:
+    let
+      system = "x86_64-linux";
+    in
     {
       # Named after networking.hostName so `nh os switch` / `nixos-rebuild
       # --flake /etc/nixos` resolve it automatically.
       nixosConfigurations."BLACK-BOX" = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
         specialArgs = { inherit nixpkgs-llama; };
         modules = [
-          { nixpkgs.overlays = [ claude-code-nix.overlays.default claude-desktop.overlays.default herdr.overlays.default t3code.overlays.default ]; }
+          {
+            nixpkgs.overlays = [
+              claude-code-nix.overlays.default
+              herdr.overlays.default
+              t3code.overlays.default
+              # Claude Desktop (Anthropic's Linux beta, only shipped as a .deb),
+              # repackaged in-repo; update procedure in its package.nix.
+              (final: _prev: { claude-desktop = final.callPackage ./pkgs/claude-desktop/package.nix { }; })
+            ];
+          }
           disko.nixosModules.disko
           home-manager.nixosModules.home-manager
           impermanence.nixosModules.impermanence
-          comfyui-nix.nixosModules.default
           # home.nix is imported by configuration.nix, which has no flake
           # inputs in scope; hand local-ci through to it.
           { home-manager.extraSpecialArgs = { inherit local-ci; }; }
           ./configuration.nix
         ];
       };
+
+      # `nix fmt <file>` (RFC 166 style). Not run over the whole repo yet, to
+      # keep history readable; format files as you touch them.
+      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt;
     };
 }
 

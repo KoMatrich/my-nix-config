@@ -3,7 +3,7 @@ let
   # See flake.nix: nixos-26.05 ships llama.cpp b9190, which has neither DFlash
   # nor DSpark speculative decoding. This pin has 0.4.0.
   pkgsLlama = import nixpkgs-llama {
-    inherit (pkgs) system;
+    inherit (pkgs.stdenv.hostPlatform) system;
     config.allowUnfree = true;   # CUDA
   };
 in
@@ -22,7 +22,7 @@ in
     group = "ollama";
     # Model files are huge and re-downloadable; keep them off the small,
     # nearly-full zroot pool. Mounted from zstorage/ollama-models (see
-    # disko-config.nix), like zstorage/comfyui-models.
+    # disko-config.nix).
     models = "/var/lib/ollama-models";
     # Only 4GB VRAM: never keep two models resident at once, always
     # unload the previous model before loading the newly requested one.
