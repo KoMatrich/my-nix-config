@@ -154,16 +154,6 @@
               recordsize = "1M";
             };
           };
-          # ComfyUI model checkpoints: huge, re-downloadable, not replicated.
-          # Mounts on top of the /persist-backed /var/lib/comfyui bind mount.
-          "comfyui-models" = {
-            type = "zfs_fs";
-            mountpoint = "/var/lib/comfyui/models";
-            options = {
-              mountpoint = "legacy";
-              recordsize = "1M";
-            };
-          };
           # Ollama model blobs: huge, re-downloadable, not replicated.
           "ollama-models" = {
             type = "zfs_fs";

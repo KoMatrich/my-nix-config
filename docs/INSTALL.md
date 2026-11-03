@@ -113,8 +113,17 @@ sudo cp /mnt/etc/nixos/hardware-configuration.nix /tmp/nixos/hardware-configurat
 sudo rm -rf /mnt/etc/nixos
 sudo mkdir -p /mnt/persist/etc
 sudo cp -r /tmp/nixos /mnt/persist/etc/nixos
-sudo nixos-install --flake /mnt/persist/etc/nixos#BLACK-BOX --no-root-passwd
+sudo nixos-install --flake /mnt/persist/etc/nixos#BLACK-BOX --no-root-passwd \
+  --override-input local-ci path:/mnt/persist/etc/nixos/ci/local-ci-stub
 ```
+
+The `local-ci` flake input points at `git+file:///home/komatrich/Tools/local-ci`,
+which does not exist on the live ISO; the override swaps in a no-op stub
+(`ci/local-ci-stub/`) for this one install. If `/mnt/home` already holds the
+real checkout (restore from backup), use
+`--override-input local-ci git+file:///mnt/home/komatrich/Tools/local-ci`
+instead. Either way the first normal `rebuild` after boot picks up the real
+one again, because the override is not written to `flake.lock`.
 
 ## 9. Export the pools, then reboot
 

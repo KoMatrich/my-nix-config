@@ -20,6 +20,30 @@ automatically on a schedule too (`programs.nh.clean`).
 
 Editing the config: it lives in `/etc/nixos` (persisted, it's this git repo).
 Commit and push your changes — the repo is the backup of the config.
+GitHub Actions evaluates every push and builds the full system on pull
+requests (`.github/workflows/check.yml`), so a broken commit shows up there.
+
+## Alerts
+
+Things that used to fail silently now pop up a desktop notification
+(`system/notify.nix`): failed sanoid/syncoid/scrub runs, ZFS pool faults and
+finished scrubs (ZED), SMART disk warnings (smartd), and a daily reminder when
+the USB HDD copy is older than 14 days (`zbackup-usb-age` shows its age).
+Test the path end-to-end: `sudo systemctl start notify-failure@test.service`.
+
+## Dev server ports
+
+The firewall no longer opens dev ports on the LAN. 3000 and 5174 are always
+reachable over Tailscale / ZeroTier (your own devices). For the LAN:
+
+| Command | What it does |
+|---|---|
+| `devport open 3000` | Open TCP 3000 to everyone on the network (add `udp` for UDP) |
+| `devport close 3000` | Close it again |
+| `devport list` | Show ports opened this way |
+
+These last until the next reboot or `rebuild`. For a permanent port, add it
+to `allowedTCPPorts` (or `devPorts` for overlay-only) in `system/firewall.nix`.
 
 ## Dev shells (direnv)
 
@@ -51,6 +75,7 @@ project without `.envrc` still creates no GC root.
 | `zbackup-status` | Replication timers + latest backup snapshots on the SSD |
 | `zbackup-usb` | Run the USB HDD backup now and follow its log (normally starts on plug-in) |
 | `zbackup-usb-status` | Result and log of the last USB HDD backup |
+| `zbackup-usb-age` | When the USB HDD last got a backup |
 | `fsdiff` | Every file on `/` that will be **erased on next reboot** |
 
 ## Impermanence workflow
@@ -142,6 +167,12 @@ back to USB-only stock usbmuxd.
 
 ## Hyprland keys
 
+Hyprland is the `hyprland` boot entry (a specialisation; GNOME stays the
+default). Hold Space at power-on for the boot menu, or switch the running
+system with
+`sudo /run/current-system/specialisation/hyprland/bin/switch-to-configuration switch`
+and log out/in (`rebuild` goes back to GNOME).
+
 Defined in `desktop/hyprland.nix`. `Super` = Windows key.
 
 | Keys | Action |
@@ -168,5 +199,8 @@ Steam → Settings → Storage → Add Drive. Games are not backed up on purpose
 
 - Default boot: NVIDIA PRIME offload (battery friendly).
   Run a game on the dGPU: `nvidia-offload %command%` in Steam launch options.
-- Docked boot entry (`docked` specialisation in the boot menu): PRIME sync,
-  dGPU always on.
+- `nvidia-open` boot entry: same system on NVIDIA's open kernel module, for
+  the comparison in [NVIDIA-OPEN-TEST.md](NVIDIA-OPEN-TEST.md)
+  (`gpu-driver-test`).
+- A `docked` specialisation (PRIME sync, dGPU always on) is sketched but
+  commented out in `nvidia.nix`.

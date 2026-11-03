@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, home-manager, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   imports =
@@ -10,6 +10,9 @@
       ./hardware-configuration.nix
       ./disko-config.nix
       ./nvidia.nix
+      ./apps/nvidia-open-test.nix # "nvidia-open" boot entry + gpu-driver-test
+      ./system/user.nix
+      ./system/notify.nix       # desktop alerts: failed backups, ZFS/SMART faults
       ./system/zfs.nix
       ./system/replication.nix
       ./system/usb-backup.nix   # offline backup to the USB HDD on plug-in
@@ -18,7 +21,6 @@
       ./system/firewall.nix
       ./system/power.nix
       ./system/sleep.nix        # lid handling + "do not suspend while busy"
-      ./apps/antivirus.nix
       ./apps/impermanence.nix
       ./apps/virtualization.nix
       ./apps/steam.nix
@@ -32,17 +34,21 @@
       ./apps/tailscale.nix
       ./apps/iphone.nix         # iPhone USB access + `iphone-backup` (USB/Wi-Fi)
       ./apps/llm.nix
-      
-      # Desktop environment: import exactly ONE of these.
-      ./desktop/gnome.nix
-      # ./desktop/hyprland.nix
+
+      # GNOME by default; Hyprland as a boot-menu specialisation.
+      ./desktop
     ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
+  # The ESP is 1 GiB and every NVIDIA kernel + initrd pair is large; without a
+  # cap, a burst of rebuilds inside nh's 7-day window can fill /boot and make
+  # a switch fail half-way. Older generations stay in the store until `gc`.
+  boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
   # Skip the boot menu; hold Space during firmware handoff to get it back
-  # (e.g. to select an older generation).
+  # (e.g. to select an older generation, or the hyprland / nvidia-open
+  # specialisations).
   boot.loader.timeout = 0;
 
   services.fwupd.enable = true;
@@ -97,15 +103,25 @@
   # Display manager, shared by both desktop environments (see desktop/).
   services.displayManager.gdm.enable = true;
 
-  # Use gpu acceleration for GTK4 apps (NVIDIA workaround, desktop-agnostic)
+  # ~/.local/bin on PATH (uv, pipx, ...). sudo below does NOT see it.
   environment.localBinInPath = true;
+
+  # sudo gets a fixed PATH instead of inheriting the user's. Otherwise anything
+  # running as komatrich could drop e.g. ~/.local/bin/env and have it run as
+  # root on the next sudo -- that is also how `sudo env` (and so nh) once
+  # silently ran uv's env script instead of coreutils (see CLAUDE.md).
+  security.sudo.extraConfig = ''
+    Defaults secure_path="/run/wrappers/bin:/run/current-system/sw/bin:/etc/profiles/per-user/root/bin:/nix/var/nix/profiles/default/bin"
+  '';
+
+  # Use gpu acceleration for GTK4 apps (NVIDIA workaround, desktop-agnostic)
   environment.variables = {
     GSK_RENDERER = "ngl";
   };
 
   # Auto login
   services.displayManager.autoLogin.enable = true;
-  services.displayManager.autoLogin.user = "komatrich";
+  services.displayManager.autoLogin.user = config.local.user;
   # Disable getty on tty1 to prevent conflicts with GDM auto login
   systemd.services."getty@tty1".enable = false;
   systemd.services."autovt@tty1".enable = false;
@@ -148,20 +164,23 @@
 
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
+  # A dotfile that exists but is not managed yet gets moved aside as
+  # <file>.hm-bak instead of aborting the whole activation.
+  home-manager.backupFileExtension = "hm-bak";
 
-  users.users.komatrich = {
+  users.users.${config.local.user} = {
     isNormalUser = true;
     description = "KoMatrich";
     extraGroups = [ "networkmanager" "wheel" "dialout" "input" ];
-    hashedPasswordFile = "/persist/passwords/komatrich";
+    hashedPasswordFile = "/persist/passwords/${config.local.user}";
   };
-  home-manager.users.komatrich = import ./home.nix;
+  home-manager.users.${config.local.user} = import ./home.nix;
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
   # List packages installed in system profile.
-  environment.systemPackages = with pkgs; [
+  environment.systemPackages = [
     pkgs.git
     pkgs.git-lfs
     pkgs.gh
@@ -186,6 +205,9 @@
   programs.appimage.binfmt = true;
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  # Flake-only system: no channels. `nixpkgs` in `nix shell nixpkgs#foo` and
+  # <nixpkgs> both resolve to this system's pinned nixpkgs (flake registry).
+  nix.channel.enable = false;
   nix.settings.auto-optimise-store = true;
 
   # CUDA packages are unfree, so cache.nixos.org never has them (llama-cpp
@@ -195,7 +217,13 @@
   # ros.cachix.org is nix-ros-overlay's binary cache (~/Repos/ros-test/nix).
   # Without it here nix ignores the flake's extra-substituters (we're not a
   # trusted user) and compiles ROS 2 from source.
-  nix.settings.substituters = [ "https://cache.nixos-cuda.org" "https://ros.cachix.org" ];
+  # ?priority: cache.nixos.org advertises 40 (lower = asked first). Without
+  # these, every store path was looked up on both extra caches before the
+  # main one, which made every build/switch slower to start.
+  nix.settings.substituters = [
+    "https://cache.nixos-cuda.org?priority=45"
+    "https://ros.cachix.org?priority=50"
+  ];
   nix.settings.trusted-public-keys = [
     "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
     "ros.cachix.org-1:dSyZxI8geDCJrwgvCOHDoAfOm5sV1wCPjBkKL+38Rvo="

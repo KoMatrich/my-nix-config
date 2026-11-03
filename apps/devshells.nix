@@ -17,7 +17,7 @@
 # Per-project onboarding: `cd project && mkenvrc` (once). See `cheat`.
 { config, lib, pkgs, ... }:
 let
-  homeDir = "/home/komatrich";
+  homeDir = config.users.users.${config.local.user}.home;
   shellMaxAgeDays = 30;
   nodeModulesMaxAgeDays = 60;
 
@@ -213,7 +213,7 @@ in
     '')
   ];
 
-  home-manager.users.komatrich = {
+  home-manager.users.${config.local.user} = {
     # Caches dev shell envs in .direnv/ and creates GC roots -> instant,
     # offline-capable, reboot/GC-proof shells. (programs.direnv.enable
     # itself lives in home.nix.)

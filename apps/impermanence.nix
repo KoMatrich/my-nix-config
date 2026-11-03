@@ -13,13 +13,14 @@
       # The system flake itself - without this the config vanishes on reboot!
       "/etc/nixos"
       "/var/log"
+      "/var/lib/AccountsService" # GNOME user avatar, language, session choice
       "/var/lib/bluetooth"
-      "/var/lib/clamav"
-      "/var/lib/comfyui" # outputs, custom nodes, workflows (models are on zstorage/comfyui-models)
       "/var/lib/docker"
       "/var/lib/cups"
       "/var/lib/fwupd"
       "/var/lib/nixos"
+      "/var/lib/power-profiles-daemon" # remembered power mode (else resets every boot)
+      "/var/lib/systemd/backlight" # screen brightness restored at boot
       "/var/lib/systemd/coredump"
       "/var/lib/systemd/timers"
       "/var/lib/upower"

@@ -5,7 +5,7 @@
   # One-time setup after install: Steam -> Settings -> Storage -> Add Drive
   # -> /games/Steam (the choice is stored in ~/.steam, which is persisted).
   systemd.tmpfiles.rules = [
-    "z /games 0775 komatrich users -"
+    "z /games 0775 ${config.local.user} users -"
   ];
 
   programs.steam = {

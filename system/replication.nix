@@ -64,4 +64,18 @@
     # simple fallback is:
     #   services.syncoid.user = "root";
   };
+
+  # A failed snapshot or replication run pops up a desktop notification
+  # (system/notify.nix) instead of only landing in the journal. Unit names
+  # follow the syncoid module: "zroot/safe/home" -> syncoid-zroot-safe-home.
+  systemd.services =
+    let
+      escapeUnitName = name:
+        lib.concatMapStrings (s: if lib.isList s then "-" else s)
+          (builtins.split "[^a-zA-Z0-9_.\\-]+" name);
+      alert = { onFailure = [ "notify-failure@%n.service" ]; };
+    in
+    { sanoid = alert; zfs-scrub = alert; }
+    // lib.mapAttrs' (name: _: lib.nameValuePair "syncoid-${escapeUnitName name}" alert)
+      config.services.syncoid.commands;
 }
