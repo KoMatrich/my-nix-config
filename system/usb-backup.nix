@@ -9,7 +9,7 @@
 { config, lib, pkgs, ... }:
 let
   pool = "zusb";
-  user = "komatrich";
+  user = config.local.user;
   datasets = [ "home" "persist" ];
 
   # Retention on the USB copy. Keeping >= 1 of every type the source produces
@@ -26,6 +26,44 @@ let
       autoprune = yes
 
   '') datasets);
+
+  # Nag when the offline copy gets old. The age comes from the bookmarks that
+  # `syncoid --create-bookmark` leaves on the *source* after every successful
+  # USB run (named after, and dated like, the newest snapshot that reached the
+  # drive), so it needs no state of its own and works without the drive.
+  reminderDays = 14;
+  zbackupUsbAge = pkgs.writeShellApplication {
+    name = "zbackup-usb-age";
+    runtimeInputs = [ config.boot.zfs.package pkgs.coreutils pkgs.libnotify ];
+    text = ''
+      now=$(date +%s)
+      oldest=""
+      for d in ${lib.concatStringsSep " " datasets}; do
+        # -p: creation as epoch seconds. No bookmark = never backed up.
+        if ! out=$(zfs list -H -p -t bookmark -o creation -s creation "zroot/safe/$d"); then
+          echo "zbackup-usb-age: cannot list bookmarks of zroot/safe/$d" >&2
+          exit 1
+        fi
+        last=$(printf '%s\n' "$out" | tail -n 1)
+        if [ -z "$last" ]; then oldest=0; break; fi
+        if [ -z "$oldest" ] || [ "$last" -lt "$oldest" ]; then oldest=$last; fi
+      done
+
+      if [ "$oldest" = 0 ]; then
+        days=never
+        msg="The USB backup drive has never been synced."
+      else
+        days=$(( (now - oldest) / 86400 ))
+        msg="Last USB backup: $(date -d "@$oldest" '+%Y-%m-%d %H:%M') ($days days ago)."
+      fi
+      echo "$msg"
+
+      if [ "''${1:-}" = "--notify" ] && { [ "$days" = never ] || [ "$days" -ge ${toString reminderDays} ]; }; then
+        notify-send --app-name="USB backup" --icon=drive-harddisk \
+          "Time for a USB backup" "$msg Plug in the backup drive; it syncs on its own."
+      fi
+    '';
+  };
 
   zbackupUsb = pkgs.writeShellApplication {
     name = "zbackup-usb-run";
@@ -101,6 +139,27 @@ in
       TimeoutStartSec = "infinity";
       Nice = 10;
       IOSchedulingClass = "idle";
+    };
+  };
+
+  environment.systemPackages = [ zbackupUsbAge ];
+
+  # Daily check (and once shortly after login): notify if the USB copy is
+  # older than reminderDays (above). `zbackup-usb-age` prints the age by hand.
+  systemd.user.services.zbackup-usb-reminder = {
+    description = "Remind to plug in the USB backup drive";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${lib.getExe zbackupUsbAge} --notify";
+    };
+  };
+  systemd.user.timers.zbackup-usb-reminder = {
+    description = "Daily USB backup age check";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnStartupSec = "15min";
+      OnCalendar = "daily";
+      Persistent = true;
     };
   };
 

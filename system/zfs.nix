@@ -77,10 +77,9 @@
     };
   };
 
-  # A dead/absent SSD must not block boot; only /games, ComfyUI models and
+  # A dead/absent SSD must not block boot; only /games, Ollama models and
   # backups live there.
   fileSystems."/games".options = [ "nofail" ];
-  fileSystems."/var/lib/comfyui/models".options = [ "nofail" ];
   fileSystems."/var/lib/ollama-models".options = [ "nofail" ];
 
   # Monthly integrity check of all data on both pools.

@@ -28,16 +28,14 @@ Only explicitly persisted state survives.
 | Dataset | Mounted at | Fate |
 |---|---|---|
 | `zstorage/games` | `/games` | Steam library; **not** replicated (games are re-downloadable) |
-| `zstorage/comfyui-models` | `/var/lib/comfyui/models` | ComfyUI model checkpoints; **not** replicated (re-downloadable) |
 | `zstorage/ollama-models` | `/var/lib/ollama-models` | Ollama model blobs; **not** replicated (re-downloadable) |
 | `zstorage/backup/home` | never mounted | Encrypted replica of `zroot/safe/home` |
 | `zstorage/backup/persist` | never mounted | Encrypted replica of `zroot/safe/persist` |
 | `zstorage/reserved` | — | 20 GB emergency reservation |
 
-`/games`, `/var/lib/comfyui/models` and `/var/lib/ollama-models` are mounted
-`nofail`: if the SSD dies, the system still boots (the comfyui/ollama
-services then refuse to start instead of re-downloading models onto the
-NVMe).
+`/games` and `/var/lib/ollama-models` are mounted `nofail`: if the SSD dies,
+the system still boots (ollama then refuses to start instead of
+re-downloading models onto the NVMe).
 
 ## Pool `zusb` (external USB HDD — offline backup)
 

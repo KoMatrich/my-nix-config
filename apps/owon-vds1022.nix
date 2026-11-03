@@ -8,9 +8,11 @@
 # java with an explicit classpath and java.library.path (upstream's own
 # launch script relies on /opt + ldconfig, neither of which exist here).
 #
-# USB access is granted the same way install-linux.sh does it: a udev
-# rule matching the device's vendor/product ID, shipped via
-# services.udev.packages so NixOS installs/reloads it automatically.
+# USB access: a udev rule matching the device's vendor/product ID, shipped
+# via services.udev.packages so NixOS installs/reloads it automatically.
+# Upstream's install-linux.sh uses MODE="0666" (every user and service may
+# drive the scope); TAG+="uaccess" instead grants it to whoever is logged in
+# at the seat, which is all the GUI needs.
 { config, lib, pkgs, ... }:
 let
   owon-vds1022 = pkgs.stdenv.mkDerivation {
@@ -49,7 +51,7 @@ let
 
       mkdir -p "$out/etc/udev/rules.d"
       cat > "$out/etc/udev/rules.d/70-owon-vds1022.rules" <<'EOF'
-      SUBSYSTEMS=="usb", ATTRS{idVendor}=="5345", ATTRS{idProduct}=="1234", MODE="0666"
+      SUBSYSTEMS=="usb", ATTRS{idVendor}=="5345", ATTRS{idProduct}=="1234", TAG+="uaccess"
       EOF
 
       # Explicit colon-joined classpath instead of java's "dir/*" wildcard
@@ -89,6 +91,6 @@ in
 {
   environment.systemPackages = [ owon-vds1022 ];
 
-  # MODE 0666 on the matching idVendor/idProduct, same as upstream's rule.
+  # uaccess on the matching idVendor/idProduct (see the header).
   services.udev.packages = [ owon-vds1022 ];
 }

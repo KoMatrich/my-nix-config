@@ -11,13 +11,13 @@
     # see ~/Tools/local-ci/README.md and docs/operations.md.
     services.local-ci = {
       enable = true;
-      configFile = "/home/komatrich/Tools/local-ci/config.toml";
+      configFile = "${config.home.homeDirectory}/Tools/local-ci/config.toml";
       build.enable = false; # local-ci-build: new commits missing from the registry
       test.enable = false; # local-ci-test: enable once config.toml has a [repo.test]
     };
 
-    home.username = "komatrich";
-    home.homeDirectory = "/home/komatrich";
+    # home.username / home.homeDirectory are set by the home-manager NixOS
+    # module from users.users.<name> (configuration.nix).
 
     home.packages = [
       pkgs.vlc
@@ -43,6 +43,10 @@
         enableGitHub = true;
         enableCodex = false;
       })
+      # T3 Code's device hub lazily runs `npm install agent-device@<ver>` into
+      # ~/.t3/tools/agent-device; without npm on PATH that spawn fails (NotFound)
+      # and the Device panel reports "device hub not installed".
+      pkgs.nodejs
       # Herdr (herdr.dev) agent runtime; provided by the herdr flake's overlay
       # (see flake.nix) and built from source there.
       pkgs.herdr

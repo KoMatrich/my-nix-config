@@ -1,3 +1,13 @@
+# Claude Desktop (Anthropic's official Linux beta) repackaged for NixOS.
+#
+# Anthropic only ships a .deb via their apt repo; it is a prebuilt Electron app,
+# so this unpacks it and patches the ELF binaries with autoPatchelfHook.
+# Applied as pkgs.claude-desktop by an overlay in flake.nix.
+#
+# Update: bump `version` + `hash` below (newest entry in
+#   https://downloads.claude.ai/claude-desktop/apt/stable/dists/stable/main/binary-amd64/Packages
+# -- the SHA256 listed there is hex; `nix hash convert --hash-algo sha256 --to sri <hex>`).
+# The app does not self-update on Linux.
 { lib
 , stdenv
 , fetchurl
