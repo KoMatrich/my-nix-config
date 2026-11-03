@@ -116,6 +116,10 @@
           # Also sets dconf org/gnome/desktop/interface color-scheme=prefer-dark
           # so libadwaita apps follow the dark theme.
           colorScheme = "dark";
+          # adw-gtk3 is a GTK3 port of the libadwaita look; GTK4 apps already
+          # are libadwaita (which ignores gtk-theme-name and warns about it),
+          # so GTK4 gets no theme name and follows colorScheme instead.
+          gtk4.theme = null;
         };
 
         qt = {
@@ -379,7 +383,7 @@
             general = {
               lock_cmd = "pidof hyprlock || hyprlock";  # no double instances
               before_sleep_cmd = "loginctl lock-session";
-              after_sleep_cmd = "hyprctl dispatch dpms on";
+              after_sleep_cmd = "hyprctl dispatch 'hl.dsp.dpms({ action = \"on\" })'";
             };
             listener = [
               {
@@ -390,8 +394,8 @@
               {
                 # 8 min: screen off
                 timeout = 480;
-                on-timeout = "hyprctl dispatch dpms off";
-                on-resume = "hyprctl dispatch dpms on";
+                on-timeout = "hyprctl dispatch 'hl.dsp.dpms({ action = \"off\" })'";
+                on-resume = "hyprctl dispatch 'hl.dsp.dpms({ action = \"on\" })'";
               }
               {
                 # 25 min: suspend
@@ -418,148 +422,143 @@
           # so waybar on-click commands, hypridle's lock_cmd etc. resolve.
           systemd.variables = [ "--all" ];
 
-          settings = {
-            "$mod" = "SUPER";
+          # Lua config (~/.config/hypr/hyprland.lua), the format Hyprland 0.55+
+          # and home-manager 26.05 default to. Written as plain Lua rather than
+          # through `settings`, whose Lua rendering needs mkLuaInline for every
+          # dispatcher. API: ${pkgs.hyprland}/share/hypr/stubs/hl.meta.lua;
+          # check edits with `Hyprland --verify-config -c ~/.config/hypr/hyprland.lua`.
+          # Note: in Lua mode `hyprctl dispatch` takes Lua too, e.g.
+          #   hyprctl dispatch 'hl.dsp.dpms({ action = "off" })'
+          configType = "lua";
 
-            # Every monitor at its preferred resolution, auto-placed, scale 1.
-            monitor = ",preferred,auto,1";
+          extraConfig = ''
+            local mod = "SUPER"
 
-            env = [
-              "XCURSOR_THEME,Adwaita"
-              "XCURSOR_SIZE,24"
-              "QT_WAYLAND_DISABLE_WINDOWDECORATION,1"
-            ];
+            -- Every monitor at its preferred resolution, auto-placed, scale 1.
+            hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1 })
 
-            input = {
-              # xkb settings in configuration.nix only apply to X11/GNOME;
-              # Hyprland needs its own copy of the layout.
-              kb_layout = "cz";
-              kb_variant = "qwerty";
-              touchpad.natural_scroll = true;
-            };
+            hl.env("XCURSOR_THEME", "Adwaita")
+            hl.env("XCURSOR_SIZE", "24")
+            hl.env("QT_WAYLAND_DISABLE_WINDOWDECORATION", "1")
 
-            # NVIDIA cursor glitch fix; harmless on Intel.
-            cursor.no_hardware_cursors = true;
+            hl.config({
+              input = {
+                -- xkb settings in configuration.nix only apply to X11/GNOME;
+                -- Hyprland needs its own copy of the layout.
+                kb_layout = "cz",
+                kb_variant = "qwerty",
+                touchpad = { natural_scroll = true },
+              },
 
-            general = {
-              gaps_in = 4;
-              gaps_out = 8;
-              border_size = 2;
-              "col.active_border" = "rgb(3584e4)";    # Adwaita blue
-              "col.inactive_border" = "rgb(3a3a46)";
-            };
+              -- NVIDIA cursor glitch fix; harmless on Intel.
+              cursor = { no_hardware_cursors = true },
 
-            decoration = {
-              rounding = 8;
-              blur.enabled = false;  # deliberate: no blur/transparency
-              shadow = {
-                enabled = true;
-                range = 12;
-                render_power = 2;
-                color = "rgba(00000055)";
-              };
-            };
+              general = {
+                gaps_in = 4,
+                gaps_out = 8,
+                border_size = 2,
+                col = {
+                  active_border = "rgb(3584e4)", -- Adwaita blue
+                  inactive_border = "rgb(3a3a46)",
+                },
+              },
 
-            # Short, GNOME-like restrained animations (speed is in 100ms units).
-            animations = {
-              enabled = true;
-              bezier = [ "easeOut, 0.25, 1, 0.5, 1" ];
-              animation = [
-                "windows, 1, 2, easeOut, popin 90%"
-                "windowsOut, 1, 2, easeOut, popin 90%"
-                "fade, 1, 2, default"
-                "border, 1, 3, default"
-                "workspaces, 1, 3, easeOut, slide"
-              ];
-            };
+              decoration = {
+                rounding = 8,
+                blur = { enabled = false }, -- deliberate: no blur/transparency
+                shadow = {
+                  enabled = true,
+                  range = 12,
+                  render_power = 2,
+                  color = "rgba(00000055)",
+                },
+              },
 
-            misc = {
-              disable_hyprland_logo = true;
-              disable_splash_rendering = true;
-              force_default_wallpaper = 0;
-            };
+              animations = { enabled = true },
 
-            exec-once = [
-              # Clipboard history collection.
-              "wl-paste --type text --watch cliphist store"
-              "wl-paste --type image --watch cliphist store"
-              # Graphical auth prompts (e.g. when an app needs root).
-              "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
-            ];
+              misc = {
+                disable_hyprland_logo = true,
+                disable_splash_rendering = true,
+                force_default_wallpaper = 0,
+              },
+            })
 
-            bind = [
-              # Apps
-              "$mod, Return, exec, kitty"
-              "$mod, D, exec, wofi --show drun"
-              "$mod, V, exec, cliphist list | wofi --dmenu | cliphist decode | wl-copy"
+            -- Short, GNOME-like restrained animations (speed is in 100ms units).
+            hl.curve("easeOut", { type = "bezier", points = { { 0.25, 1 }, { 0.5, 1 } } })
+            hl.animation({ leaf = "windows", enabled = true, speed = 2, bezier = "easeOut", style = "popin 90%" })
+            hl.animation({ leaf = "windowsOut", enabled = true, speed = 2, bezier = "easeOut", style = "popin 90%" })
+            hl.animation({ leaf = "fade", enabled = true, speed = 2, bezier = "default" })
+            hl.animation({ leaf = "border", enabled = true, speed = 3, bezier = "default" })
+            hl.animation({ leaf = "workspaces", enabled = true, speed = 3, bezier = "easeOut", style = "slide" })
 
-              # Lock (hypridle relays loginctl lock to hyprlock)
-              "$mod, L, exec, loginctl lock-session"
+            hl.on("hyprland.start", function()
+              -- Clipboard history collection.
+              hl.exec_cmd("wl-paste --type text --watch cliphist store")
+              hl.exec_cmd("wl-paste --type image --watch cliphist store")
+              -- Graphical auth prompts (e.g. when an app needs root).
+              hl.exec_cmd("${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1")
+            end)
 
-              # Window management
-              "$mod, Q, killactive"
-              "$mod, M, exit"
-              "$mod, F, fullscreen"
-              "$mod SHIFT, Space, togglefloating"
-              "$mod, left, movefocus, l"
-              "$mod, right, movefocus, r"
-              "$mod, up, movefocus, u"
-              "$mod, down, movefocus, d"
-              "$mod SHIFT, left, movewindow, l"
-              "$mod SHIFT, right, movewindow, r"
-              "$mod SHIFT, up, movewindow, u"
-              "$mod SHIFT, down, movewindow, d"
-              "$mod CTRL, left, resizeactive, -40 0"
-              "$mod CTRL, right, resizeactive, 40 0"
-              "$mod CTRL, up, resizeactive, 0 -40"
-              "$mod CTRL, down, resizeactive, 0 40"
-              "ALT, Tab, cyclenext"
-              "ALT, Tab, bringactivetotop"
+            -- Apps
+            hl.bind(mod .. " + Return", hl.dsp.exec_cmd("kitty"))
+            hl.bind(mod .. " + D", hl.dsp.exec_cmd("wofi --show drun"))
+            hl.bind(mod .. " + V", hl.dsp.exec_cmd("cliphist list | wofi --dmenu | cliphist decode | wl-copy"))
 
-              # Screenshots
-              # Region to clipboard
-              ", Print, exec, grim -g \"$(slurp)\" - | wl-copy"
-              # Full screen to ~/Pictures
-              "SHIFT, Print, exec, grim ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png"
+            -- Lock (hypridle relays loginctl lock to hyprlock)
+            hl.bind(mod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"))
 
-              # Workspaces (below, via keycodes)
-              "$mod, mouse_down, workspace, e+1"
-              "$mod, mouse_up, workspace, e-1"
-            ]
-            # Workspace switching by keycode (code:10-18 = number row 1-9):
-            # on the cz layout the unshifted number row emits +ěščřžýáíé, so
-            # keysym binds like "$mod, 1" would never match.
-            ++ builtins.concatLists (builtins.genList (i:
-              let
-                ws = toString (i + 1);
-                key = "code:${toString (i + 10)}";
-              in [
-                "$mod, ${key}, workspace, ${ws}"
-                "$mod SHIFT, ${key}, movetoworkspace, ${ws}"
-              ]) 9);
+            -- Window management
+            hl.bind(mod .. " + Q", hl.dsp.window.close())
+            hl.bind(mod .. " + M", hl.dsp.exit())
+            hl.bind(mod .. " + F", hl.dsp.window.fullscreen())
+            hl.bind(mod .. " + SHIFT + Space", hl.dsp.window.float({ action = "toggle" }))
+            for key, dir in pairs({ left = "left", right = "right", up = "up", down = "down" }) do
+              hl.bind(mod .. " + " .. key, hl.dsp.focus({ direction = dir }))
+              hl.bind(mod .. " + SHIFT + " .. key, hl.dsp.window.move({ direction = dir }))
+            end
+            hl.bind(mod .. " + CTRL + left", hl.dsp.window.resize({ x = -40, y = 0, relative = true }))
+            hl.bind(mod .. " + CTRL + right", hl.dsp.window.resize({ x = 40, y = 0, relative = true }))
+            hl.bind(mod .. " + CTRL + up", hl.dsp.window.resize({ x = 0, y = -40, relative = true }))
+            hl.bind(mod .. " + CTRL + down", hl.dsp.window.resize({ x = 0, y = 40, relative = true }))
+            hl.bind("ALT + Tab", function()
+              hl.dispatch(hl.dsp.window.cycle_next())
+              hl.dispatch(hl.dsp.window.bring_to_top())
+            end)
 
-            # Drag windows with the mouse (272 = left button, 273 = right).
-            bindm = [
-              "$mod, mouse:272, movewindow"
-              "$mod, mouse:273, resizewindow"
-            ];
+            -- Screenshots: region to clipboard / full screen to ~/Pictures
+            hl.bind("Print", hl.dsp.exec_cmd("grim -g \"$(slurp)\" - | wl-copy"))
+            hl.bind("SHIFT + Print", hl.dsp.exec_cmd("grim ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png"))
 
-            # Repeat while held (volume/brightness).
-            bindel = [
-              ", XF86AudioRaiseVolume, exec, wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+"
-              ", XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
-              ", XF86MonBrightnessUp, exec, brightnessctl set 5%+"
-              ", XF86MonBrightnessDown, exec, brightnessctl set 5%-"
-            ];
-            # Work even when the screen is locked.
-            bindl = [
-              ", XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-              ", XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
-              ", XF86AudioPlay, exec, playerctl play-pause"
-              ", XF86AudioNext, exec, playerctl next"
-              ", XF86AudioPrev, exec, playerctl previous"
-            ];
-          };
+            -- Workspaces. By keycode (code:10-18 = number row 1-9): on the cz
+            -- layout the unshifted number row emits +ěščřžýáíé, so keysym binds
+            -- like "SUPER + 1" would never match.
+            for i = 1, 9 do
+              local key = "code:" .. (i + 9)
+              hl.bind(mod .. " + " .. key, hl.dsp.focus({ workspace = i }))
+              hl.bind(mod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
+            end
+            hl.bind(mod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
+            hl.bind(mod .. " + mouse_up", hl.dsp.focus({ workspace = "e-1" }))
+
+            -- Drag windows with the mouse (272 = left button, 273 = right).
+            hl.bind(mod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })
+            hl.bind(mod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
+
+            -- Repeat while held (volume/brightness), and work when locked.
+            local held = { locked = true, repeating = true }
+            hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+"), held)
+            hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"), held)
+            hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl set 5%+"), held)
+            hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl set 5%-"), held)
+
+            -- Work even when the screen is locked.
+            local locked = { locked = true }
+            hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), locked)
+            hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), locked)
+            hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), locked)
+            hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), locked)
+            hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), locked)
+          '';
         };
       };
   };
