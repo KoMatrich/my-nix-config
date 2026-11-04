@@ -52,6 +52,13 @@ jobs:
       - name: nix flake check (evaluate everything)
         run: nix flake check --no-build --no-write-lock-file $OVERRIDE
 
+      - name: No evaluation warnings
+        # Deprecations (renamed options, changed stateVersion defaults, ...)
+        # only print a warning; fail here so they get resolved, not ignored.
+        run: |
+          nix eval --raw --no-write-lock-file $OVERRIDE "$TOPLEVEL.drvPath" 2> eval.log >/dev/null || { cat eval.log; exit 1; }
+          if grep -q 'evaluation warning' eval.log; then cat eval.log; exit 1; fi
+
       - name: What a build would fetch / compile
         run: nix build --dry-run --no-write-lock-file $OVERRIDE "$TOPLEVEL" 2>&1 | tail -n 60
 
