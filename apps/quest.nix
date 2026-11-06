@@ -12,7 +12,12 @@
   # unzip: Unity Hub's module installer shells out to it (it is not in the
   # Hub's FHS env), so installing Android OpenJDK/SDK fails with
   # "Command 'unzip' not found in PATH" without it.
-  environment.systemPackages = [ pkgs.android-tools pkgs.unzip ];
+  # scrcpy: mirror the headset's display in a window on the PC, over USB or
+  # Wi-Fi (adb). Usage: enable Developer Mode in the Meta Horizon phone app,
+  # plug in the Quest (accept the "Allow USB debugging" prompt in the
+  # headset), then run `scrcpy`. Wireless: `adb tcpip 5555`, unplug, then
+  # `adb connect <quest-ip>:5555 && scrcpy`.
+  environment.systemPackages = [ pkgs.android-tools pkgs.unzip pkgs.scrcpy ];
 
   # WiVRn: OpenXR runtime that streams to the Quest's WiVRn client app. Not
   # started at login; run `systemctl --user start wivrn` when wanted. The
