@@ -90,6 +90,10 @@
               # Claude Desktop (Anthropic's Linux beta, only shipped as a .deb),
               # repackaged in-repo; update procedure in its package.nix.
               (final: _prev: { claude-desktop = final.callPackage ./pkgs/claude-desktop/package.nix { }; })
+              # Orca (onorca.dev) coding-agent IDE, repackaged in-repo from its
+              # .deb; pkgs.orca is the unrelated GNOME screen reader, hence
+              # orca-ide. Update procedure in its package.nix.
+              (final: _prev: { orca-ide = final.callPackage ./pkgs/orca/package.nix { }; })
             ];
           }
           disko.nixosModules.disko
