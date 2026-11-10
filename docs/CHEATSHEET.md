@@ -45,6 +45,21 @@ reachable over Tailscale / ZeroTier (your own devices). For the LAN:
 These last until the next reboot or `rebuild`. For a permanent port, add it
 to `allowedTCPPorts` (or `devPorts` for overlay-only) in `system/firewall.nix`.
 
+## Sandbox (devbox)
+
+Run untrusted code (npm installs, other people's builds, Claude without
+permission prompts) in a Debian container that only sees the current project.
+Details and limits: `docs/DEVBOX.md`.
+
+| Command | What it does |
+|---|---|
+| `devbox` | Shell in the sandbox; project mounted at `/work/<name>` |
+| `devbox <cmd>` | Run one command there, e.g. `devbox npm ci` |
+| `devbox -p 5173 <cmd>` | Also publish port 5173 on `127.0.0.1` |
+| `devbox --offline <cmd>` | No network at all |
+| `devbox --rebuild` | Re-pull the base image, update Claude Code + pnpm |
+| `yolo` | `claude --dangerously-skip-permissions` inside the sandbox |
+
 ## Dev shells (direnv)
 
 Dev shells are cached and GC-rooted per project via nix-direnv, so they

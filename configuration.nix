@@ -23,6 +23,7 @@
       ./system/sleep.nix        # lid handling + "do not suspend while busy"
       ./apps/impermanence.nix
       ./apps/virtualization.nix
+      ./apps/devbox.nix         # `devbox` / `yolo`: sandbox for npm + Claude YOLO mode
       ./apps/steam.nix
       ./apps/heroic.nix
       ./apps/prismlauncher.nix

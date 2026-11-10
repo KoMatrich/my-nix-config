@@ -37,6 +37,12 @@ let
       ];
     }
     {
+      title = "Sandbox (devbox, apps/devbox.nix)";
+      aliases = [
+        { name = "yolo"; cmd = "devbox claude --dangerously-skip-permissions"; desc = "Claude Code with no permission prompts, inside the devbox sandbox (sees only the current project)"; }
+      ];
+    }
+    {
       title = "ZFS health & snapshots";
       aliases = [
         { name = "zhealth"; cmd = "zpool status -x"; desc = "Pool health (silent = all good)"; }
@@ -55,6 +61,7 @@ let
     { name = "devshells"; desc = "List cached dev shells with last-used age and closure size"; }
     { name = "mkenvrc"; desc = "Create .envrc in the current project + direnv allow (makes its dev shell persistent)"; }
     { name = "mkflake"; desc = "Guided wizard: scaffold flake.nix (pick language + packages) + .envrc for a new project"; }
+    { name = "devbox"; desc = "[-p port] [--offline] [cmd]: run cmd (default bash) in a Debian sandbox that sees only the current project (docs/DEVBOX.md)"; }
     { name = "devport"; desc = "open/close <port> [tcp|udp], list: temporarily open a dev server port to the LAN (system/firewall.nix)"; }
     { name = "zbackup-usb-age"; desc = "How old the USB HDD backup is (a daily reminder nags after 14 days)"; }
     { name = "gpu-driver-test"; desc = "NVIDIA open vs proprietary module test: power, CUDA, GL/Vulkan (docs/NVIDIA-OPEN-TEST.md)"; }

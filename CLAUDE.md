@@ -38,6 +38,8 @@ Aliases (`rebuild`, `update`, `gc`, `zhealth`, `zsnaps`, `zbackup-status`, `devs
 - `local-ci` is a `git+file:///home/...` input pointing at a sibling repo under `~/Tools/`. Changes there need to be **committed** in that repo, then picked up here with `nix flake update local-ci` — editing that repo's working tree alone does nothing for this flake.
 - `claude-code-nix` supplies an overlay (tracks upstream Claude Code releases faster than nixpkgs) applied in the `outputs` block of `flake.nix`.
 
+**Sandbox for untrusted code** (`apps/devbox.nix`, `docs/DEVBOX.md`): `devbox` runs a command in a rootless Podman Debian container that sees only the current repo; host-executed files (`.git/config`, hooks, `.envrc`, `flake.nix`, `.direnv`) are mounted read-only. `yolo` = Claude Code with `--dangerously-skip-permissions` inside it.
+
 **Dev shells for other projects** (not this repo): `apps/devshells.nix` implements persistent nix-direnv dev shells with two independent cleanup timers (30-day shell expiry, 60-day `node_modules` expiry) that exist specifically because `nh clean`'s normal 7-day window would otherwise kill dev shells too aggressively. Onboarding a project is `mkflake` (new) or `mkenvrc` (existing `flake.nix`), not manual `.envrc` editing.
 
 ## Known gotchas

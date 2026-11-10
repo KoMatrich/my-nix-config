@@ -4,6 +4,7 @@
 # docs/DISK-LAYOUT.md - pools, datasets, what is wiped/persisted/replicated
 # docs/RECOVERY.md    - disk failure & file restore procedures
 # docs/CHEATSHEET.md  - daily commands and aliases (rebuild, update, fsdiff, ...)
+# docs/DEVBOX.md      - sandbox for npm / untrusted builds / Claude YOLO mode
 
 {
   inputs = {
