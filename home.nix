@@ -47,6 +47,11 @@
       # ~/.t3/tools/agent-device; without npm on PATH that spawn fails (NotFound)
       # and the Device panel reports "device hub not installed".
       pkgs.nodejs
+      # Orca (onorca.dev): coding agents side by side in git worktrees, and
+      # can group several repos under one parent folder. Packaged in
+      # pkgs/orca (see flake.nix). Launch "Orca" from the app menu or
+      # `orca-desktop`; `orca-ide` is its CLI. Uses the claude/gh already on PATH.
+      pkgs.orca-ide
       # Herdr (herdr.dev) agent runtime; provided by the herdr flake's overlay
       # (see flake.nix) and built from source there.
       pkgs.herdr
