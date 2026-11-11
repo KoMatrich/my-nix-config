@@ -190,6 +190,20 @@ Defined in `desktop/hyprland.nix`. `Super` = Windows key.
 | `Super+L` | Lock screen |
 | `Super+M` | Exit Hyprland session |
 
+## ClankerJail (sandboxed Claude)
+
+A rootless Docker container where Claude Code, driven from T3 Code, runs with
+no permission prompts and installs whatever it needs. Only `~/ClankerJail`
+(`/work` inside) is shared with the host. Details: [CLANKERJAIL.md](CLANKERJAIL.md).
+
+| Command | What it does |
+|---|---|
+| `clanker` | Create/start the jail; T3 Code server on `127.0.0.1:3780` |
+| `clanker pair` | One-time link to connect the T3 Code app (or a browser) to it |
+| `clanker claude` | Claude Code CLI in `/work`, permissions skipped |
+| `clanker shell` | Root shell in the jail |
+| `clanker reset` | Fresh container: drops apt installs, keeps the login and `/work` |
+
 ## Steam / games
 
 Library lives at `/games` (512 GB SSD). Add it once via

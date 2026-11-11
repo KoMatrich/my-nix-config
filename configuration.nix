@@ -34,6 +34,7 @@
       ./apps/tailscale.nix
       ./apps/iphone.nix         # iPhone USB access + `iphone-backup` (USB/Wi-Fi)
       ./apps/llm.nix
+      ./apps/clanker-jail       # `clanker`: sandboxed Claude Code / T3 Code, no permission prompts
 
       # GNOME by default; Hyprland as a boot-menu specialisation.
       ./desktop
