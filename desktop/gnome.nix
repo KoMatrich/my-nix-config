@@ -92,6 +92,9 @@
             caffeine.extensionUuid
             freon.extensionUuid
             steal-my-focus-window.extensionUuid
+            # Local extension (symlinked by ~/Tools/gui selector/selector/install.sh).
+            # Must be listed here: otherwise every rebuild resets it to disabled.
+            "gui-selector@komatrich"
           ];
         };
         settings."org/gnome/desktop/peripherals/touchpad" = {
