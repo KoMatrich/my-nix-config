@@ -86,6 +86,16 @@ in
         192.168.1.26; do
         iptables -A nixos-fw -p udp -s "$vehicle" --dport 8888 -j nixos-fw-accept
       done
+
+      # SSDP/UPnP discovery replies (casting, DLNA, screen sharing). We send
+      # M-SEARCH to the multicast group 239.255.255.250:1900 and devices answer
+      # by unicast from port 1900 to our ephemeral port. conntrack does not tie
+      # a unicast answer to a multicast query, so without this they are
+      # dropped. Limited to the home LAN and to the ephemeral port range
+      # (net.ipv4.ip_local_port_range) so "source port 1900" cannot be used to
+      # reach arbitrary local UDP services.
+      iptables -A nixos-fw -p udp -s 192.168.1.0/24 --sport 1900 \
+        --dport 32768:60999 -j nixos-fw-accept
     '';
 
     # Log packets refused by the firewall (kernel ring buffer / journal),
@@ -94,5 +104,10 @@ in
     # or:
     #   dmesg -w | grep -i refused
     logRefusedPackets = true;
+    # Also log refused broadcast/multicast packets (NixOS default: unicast
+    # only). LAN discovery (games, casting, SSDP) is broadcast/multicast, and
+    # with the default those drops never show up in the log. Noisier; set
+    # back to true once nothing needs diagnosing.
+    logRefusedUnicastsOnly = false;
   };
 }
