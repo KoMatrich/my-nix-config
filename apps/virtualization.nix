@@ -21,6 +21,13 @@
     setSocketVariable = true; # DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock
   };
 
+  # ToolHive (`thv`, pkgs.toolhive in home.nix) ignores DOCKER_HOST and only
+  # auto-detects rootful sockets ("no container runtime available"); point it at
+  # the rootless one. The Studio wrapper sets the same default for GUI launches.
+  environment.extraInit = ''
+    export TOOLHIVE_DOCKER_SOCKET="''${TOOLHIVE_DOCKER_SOCKET:-$XDG_RUNTIME_DIR/docker.sock}"
+  '';
+
   # Run aarch64 containers (qemu-user), so local-ci can build the arm64 half of
   # the multi-arch images the deploy host pulls. preferStaticEmulators makes the
   # kernel preload the emulator (binfmt "F" flag): without it the interpreter path

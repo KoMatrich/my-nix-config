@@ -52,6 +52,13 @@
       # pkgs/orca (see flake.nix). Launch "Orca" from the app menu or
       # `orca-desktop`; `orca-ide` is its CLI. Uses the claude/gh already on PATH.
       pkgs.orca-ide
+      # ToolHive (stacklok): MCP servers run in (rootless) Docker containers and
+      # are managed from one place. `toolhive` launches the Studio UI
+      # (pkgs/toolhive-studio, see flake.nix); `thv` is the nixpkgs CLI. The UI
+      # drives its own bundled, newer thv, exposed as `toolhive-thv` - use that
+      # one when scripting against the UI's state. See docs/TOOLHIVE.md.
+      pkgs.toolhive-studio
+      pkgs.toolhive
       # Herdr (herdr.dev) agent runtime; provided by the herdr flake's overlay
       # (see flake.nix) and built from source there.
       pkgs.herdr
