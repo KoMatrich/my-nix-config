@@ -12,11 +12,20 @@ The default shell is zsh with oh-my-zsh (plugins: `git`, `sudo`,
 |---|---|---|
 | `rebuild` | `nh os switch` | Apply config changes from `/etc/nixos` |
 | `update` | `nh os switch --update` | Update flake inputs + rebuild |
+| `autoupdate-now` | `systemctl start nixos-autoupdate` | Run the weekly flake update + build now and follow its log |
+| `autoupdate-status` | `systemctl status nixos-autoupdate` | Next scheduled auto-update + result and log of the last one |
 | `gc` | `nh clean all ...` | Delete old generations (keeps 7 days / last 5; dev shells expire separately, see below) |
 | `docker-clean` | `docker system prune -a` | Remove unused Docker images, stopped containers, networks and build cache (keeps volumes; asks first) |
 
 `nh` also shows a package diff on every rebuild. Old generations are cleaned
 automatically on a schedule too (`programs.nh.clean`).
+
+Updates also run on their own, weekly (`system/autoupdate.nix`): flake
+update, build, and the new generation becomes the default boot entry, so it
+applies on the **next reboot** (nothing changes under a running desktop). Each
+update is committed as `FEAT: auto flake update`. A run is skipped, with a
+notification, while `/etc/nixos` has uncommitted changes. Undo one with
+`git revert` + `rebuild`, or pick an older generation in the boot menu.
 
 Editing the config: it lives in `/etc/nixos` (persisted, it's this git repo).
 Commit and push your changes — the repo is the backup of the config.

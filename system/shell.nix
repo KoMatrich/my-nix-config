@@ -19,6 +19,9 @@ let
         # reported instead of exiting 0.
         { name = "rebuild"; cmd = "nice -n 19 nh os switch"; desc = "Apply config changes from /etc/nixos"; verify = true; }
         { name = "update"; cmd = "nice -n 19 nh os switch --update"; desc = "Update flake inputs + rebuild"; verify = true; }
+        # Weekly timer, system/autoupdate.nix. Applies on next boot.
+        { name = "autoupdate-now"; cmd = "sudo systemctl start --no-block nixos-autoupdate.service && journalctl -fu nixos-autoupdate --since now"; desc = "Run the weekly flake update + build now and follow its log (Ctrl+C stops following, not the update)"; }
+        { name = "autoupdate-status"; cmd = "systemctl list-timers nixos-autoupdate.timer --all --no-pager && systemctl status nixos-autoupdate --no-pager -n 25"; desc = "Next scheduled auto-update + result and log of the last one"; }
         { name = "gc"; cmd = "nice -n 19 nh clean all ${gcArgs}"; desc = "Delete old generations (keeps 7 days / last 5; dev shells expire separately after 30 days)"; }
         # No -f: docker asks for confirmation. No --volumes: unused volumes may hold data.
         { name = "docker-clean"; cmd = "docker system prune -a"; desc = "Remove unused Docker images, stopped containers, networks and build cache (keeps volumes; asks first)"; }

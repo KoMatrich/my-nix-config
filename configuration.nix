@@ -17,6 +17,7 @@
       ./system/replication.nix
       ./system/usb-backup.nix   # offline backup to the USB HDD on plug-in
       ./system/shell.nix
+      ./system/autoupdate.nix   # weekly flake update + build, one commit per update
       ./system/zerotier.nix
       ./system/firewall.nix
       ./system/power.nix
