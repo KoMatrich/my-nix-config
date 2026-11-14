@@ -28,6 +28,7 @@
       ./apps/heroic.nix
       ./apps/prismlauncher.nix
       ./apps/devshells.nix
+      ./apps/npm-hardening.nix  # no install scripts, no brand-new releases
       ./apps/owon-vds1022.nix
       ./apps/gnome-network-displays.nix
       ./apps/godot.nix
