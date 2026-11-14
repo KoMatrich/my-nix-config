@@ -47,11 +47,6 @@
       # ~/.t3/tools/agent-device; without npm on PATH that spawn fails (NotFound)
       # and the Device panel reports "device hub not installed".
       pkgs.nodejs
-      # Orca (onorca.dev): coding agents side by side in git worktrees, and
-      # can group several repos under one parent folder. Packaged in
-      # pkgs/orca (see flake.nix). Launch "Orca" from the app menu or
-      # `orca-desktop`; `orca-ide` is its CLI. Uses the claude/gh already on PATH.
-      pkgs.orca-ide
       # ToolHive (stacklok): MCP servers run in (rootless) Docker containers and
       # are managed from one place. `toolhive` launches the Studio UI
       # (pkgs/toolhive-studio, see flake.nix); `thv` is the nixpkgs CLI. The UI
@@ -62,6 +57,10 @@
       # Herdr (herdr.dev) agent runtime; provided by the herdr flake's overlay
       # (see flake.nix) and built from source there.
       pkgs.herdr
+      # Bare interpreter only (no libraries): coding agents and one-off scripts
+      # assume `python3` exists. Project dependencies still belong in the
+      # project dev shell, whose python shadows this one.
+      pkgs.python3
       pkgs.jq
       pkgs.libnotify
 
