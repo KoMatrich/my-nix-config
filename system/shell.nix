@@ -18,7 +18,7 @@ let
         # instead of plain aliases, so a switch that silently fails to land is
         # reported instead of exiting 0.
         { name = "rebuild"; cmd = "nice -n 19 nh os switch"; desc = "Apply config changes from /etc/nixos"; verify = true; }
-        { name = "update"; cmd = "nice -n 19 nh os switch --update"; desc = "Update flake inputs + rebuild"; verify = true; }
+        { name = "update"; cmd = "claude-desktop-bump; nice -n 19 nh os switch --update"; desc = "Update flake inputs + Claude Desktop, then rebuild"; verify = true; }
         # Weekly timer, system/autoupdate.nix. Applies on next boot.
         { name = "autoupdate-now"; cmd = "sudo systemctl start --no-block nixos-autoupdate.service && journalctl -fu nixos-autoupdate --since now"; desc = "Run the weekly flake update + build now and follow its log (Ctrl+C stops following, not the update)"; }
         { name = "autoupdate-status"; cmd = "systemctl list-timers nixos-autoupdate.timer --all --no-pager && systemctl status nixos-autoupdate --no-pager -n 25"; desc = "Next scheduled auto-update + result and log of the last one"; }
@@ -81,6 +81,18 @@ let
   # `nix develop` shell must not pick up that shell's toolchain.
   mkVerified = a: pkgs.writeShellScriptBin a.name ''
     PATH=${lib.makeBinPath [ config.programs.nh.package config.nix.package pkgs.coreutils ]}:$PATH
+
+    # nh only asks for the sudo password at activation, i.e. after the whole
+    # download + build. Walk away during that and the prompt times out, and
+    # the rerun fetches everything again. So ask now, and keep the sudo
+    # timestamp fresh in the background until the command is done.
+    if ! sudo -v; then
+      printf '\033[1;31m✗ %s: sudo authentication failed, nothing was run\033[0m\n' '${a.name}' >&2
+      exit 1
+    fi
+    ( while sleep 60; do sudo -n -v 2>/dev/null || exit; done ) &
+    keepalive=$!
+    trap 'kill "$keepalive" 2>/dev/null' EXIT
 
     ${a.cmd} "$@"
     status=$?

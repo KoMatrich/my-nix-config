@@ -11,7 +11,7 @@ The default shell is zsh with oh-my-zsh (plugins: `git`, `sudo`,
 | Alias | Runs | What it does |
 |---|---|---|
 | `rebuild` | `nh os switch` | Apply config changes from `/etc/nixos` |
-| `update` | `nh os switch --update` | Update flake inputs + rebuild |
+| `update` | `claude-desktop-bump; nh os switch --update` | Update flake inputs + Claude Desktop, then rebuild |
 | `autoupdate-now` | `systemctl start nixos-autoupdate` | Run the weekly flake update + build now and follow its log |
 | `autoupdate-status` | `systemctl status nixos-autoupdate` | Next scheduled auto-update + result and log of the last one |
 | `gc` | `nh clean all ...` | Delete old generations (keeps 7 days / last 5; dev shells expire separately, see below) |

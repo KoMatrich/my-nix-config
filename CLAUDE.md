@@ -12,7 +12,7 @@ NixOS system flake for host `BLACK-BOX` (single-user desktop/workstation, i5-930
 |---|---|
 | `rebuild` | `nh os switch` — apply config changes live. Wraps the switch so a silent no-op (e.g. a shadowed `sudo env`, see Gotchas) is reported instead of exiting 0 — trust this wrapper's output over a bare exit code. |
 | `nh os build` | Build the closure without switching — use this to check a change compiles before `rebuild`. |
-| `update` | `nh os switch --update` — bump flake inputs, then rebuild. |
+| `update` | `claude-desktop-bump; nh os switch --update` — bump flake inputs and the in-repo Claude Desktop pin (`pkgs/claude-desktop/source.json`), then rebuild. Asks for the sudo password up front, like `rebuild`. |
 | `autoupdate-now` | Run the weekly auto-update (`system/autoupdate.nix`) now: as the user, `nix flake update` + build, then `switch-to-configuration boot` (applies on next reboot) and commit `flake.lock` as `FEAT: auto flake update`. Skips with a notification if the tree is dirty, so keep `/etc/nixos` committed. |
 | `nix flake check` | Validate the flake (evaluates the `nixosConfigurations.BLACK-BOX` output). |
 | `gc` | `nh clean all --keep-since 7d --keep 5 --no-direnv` — prune old generations. Dev-shell GC roots are excluded and expire on their own 30-day timer (`apps/devshells.nix`). |

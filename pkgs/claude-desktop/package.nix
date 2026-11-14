@@ -4,10 +4,12 @@
 # so this unpacks it and patches the ELF binaries with autoPatchelfHook.
 # Applied as pkgs.claude-desktop by an overlay in flake.nix.
 #
-# Update: bump `version` + `hash` below (newest entry in
+# The app does not self-update on Linux. Version + hash live in source.json,
+# which `claude-desktop-bump` (system/autoupdate.nix) rewrites from the newest
+# entry in
 #   https://downloads.claude.ai/claude-desktop/apt/stable/dists/stable/main/binary-amd64/Packages
-# -- the SHA256 listed there is hex; `nix hash convert --hash-algo sha256 --to sri <hex>`).
-# The app does not self-update on Linux.
+# It runs as part of `update` and the weekly auto-update, so the app moves
+# together with claude-code instead of being pinned by hand.
 { lib
 , stdenv
 , fetchurl
@@ -54,13 +56,16 @@
 , trash-cli
 }:
 
+let
+  source = lib.importJSON ./source.json;
+in
 stdenv.mkDerivation rec {
   pname = "claude-desktop";
-  version = "2.37337.1";
+  inherit (source) version;
 
   src = fetchurl {
     url = "https://downloads.claude.ai/claude-desktop/apt/stable/pool/main/c/claude-desktop/claude-desktop_${version}_amd64.deb";
-    hash = "sha256-QXRbCRTw/1FjGh/xu0A7g2v1yZWEXMpnQt05vKOi2hQ=";
+    inherit (source) hash;
   };
 
   nativeBuildInputs = [ dpkg autoPatchelfHook makeWrapper wrapGAppsHook3 ];
