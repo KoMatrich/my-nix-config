@@ -74,6 +74,15 @@ in
     interfaces."tailscale0".allowedTCPPorts = devPorts;
     interfaces."zt+".allowedTCPPorts = devPorts;
 
+    # Ethernet port shared via NetworkManager ("Share to other computers",
+    # ipv4.method=shared, 10.42.0.1/24): NM's dnsmasq must be reachable from
+    # the device on the cable (a Raspberry Pi) for DHCP and DNS. Scoped to
+    # eno1 so nothing is opened on Wi-Fi.
+    interfaces."eno1" = {
+      allowedUDPPorts = [ 53 67 ];
+      allowedTCPPorts = [ 53 ];
+    };
+
     # micro-ROS agent (docker, --net=host) on UDP 8888, reachable only from
     # the XIAO ESP32-S3 vehicles (~/Repos/ros-test). Their addresses are DHCP
     # leases: if one changes, update it here (or reserve it in the router).
