@@ -58,7 +58,7 @@ let
     { name = "devshells"; desc = "List cached dev shells with last-used age and closure size"; }
     { name = "mkenvrc"; desc = "Create .envrc in the current project + direnv allow (makes its dev shell persistent)"; }
     { name = "mkflake"; desc = "Guided wizard: scaffold flake.nix (pick language + packages) + .envrc for a new project"; }
-    { name = "devport"; desc = "open/close <port> [tcp|udp], list: temporarily open a dev server port to the LAN (system/firewall.nix)"; }
+    { name = "devport"; desc = "open/close <port> [tcp|udp], list, check: temporarily open a dev server port to the LAN; check shows what is listening and whether the LAN can reach it (system/firewall.nix)"; }
     { name = "zbackup-usb-age"; desc = "How old the USB HDD backup is (a daily reminder nags after 14 days)"; }
     { name = "gpu-driver-test"; desc = "NVIDIA open vs proprietary module test: power, CUDA, GL/Vulkan (docs/NVIDIA-OPEN-TEST.md)"; }
     { name = "iphone-backup"; desc = "Back up the iPhone to ~/Backups/iPhone over USB, or Wi-Fi if not plugged in (apps/iphone.nix)"; }

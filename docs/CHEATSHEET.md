@@ -50,6 +50,14 @@ reachable over Tailscale / ZeroTier (your own devices). For the LAN:
 | `devport open 3000` | Open TCP 3000 to everyone on the network (add `udp` for UDP) |
 | `devport close 3000` | Close it again |
 | `devport list` | Show ports opened this way |
+| `devport check` | Everything listening on a non-loopback address and whether the LAN can reach it (`--all` adds ephemeral UDP) |
+
+You rarely need to check by hand: when a program starts listening on a TCP
+port the firewall blocks, a notification offers **Open until reboot** (asks
+for your password, then runs `devport open`). **Never ask for <program>** is
+remembered in `~/.local/state/devport/ignore`; delete the line to undo it.
+Each port is asked about once per login session
+(`systemctl --user restart devport-watch` resets that).
 
 These last until the next reboot or `rebuild`. For a permanent port, add it
 to `allowedTCPPorts` (or `devPorts` for overlay-only) in `system/firewall.nix`.

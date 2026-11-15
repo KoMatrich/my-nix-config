@@ -6,10 +6,19 @@
 #   - From your own devices over Tailscale/ZeroTier: always open (devPorts).
 #   - From the LAN, temporarily: `devport open 3000` (sudo; until the next
 #     reboot, rebuild or `devport close 3000`). `devport list` shows them.
+#   - `devport check` lists everything that is listening and whether the LAN
+#     can reach it. The devport-watch user service does the asking for you:
+#     when a program starts listening on a blocked TCP port, a notification
+#     offers "Open until reboot" (polkit prompt, then `devport open`).
+#     "Never ask for <program>" is remembered in ~/.local/state/devport/ignore.
 #   - Permanently from the LAN: add the port to allowedTCPPorts below.
 { config, lib, pkgs, ... }:
 let
   devPorts = [ 3000 5174 ];
+
+  devportHelper = pkgs.writers.writePython3Bin "devport-helper"
+    { doCheck = false; }
+    (builtins.readFile ./devport.py);
 
   # Inserts/removes ACCEPT rules at the top of NixOS's own nixos-fw chain,
   # tagged with a comment so they can be listed and are never confused with
@@ -17,13 +26,15 @@ let
   # which is why these are temporary.
   devport = pkgs.writeShellApplication {
     name = "devport";
-    runtimeInputs = [ config.networking.firewall.package pkgs.gnugrep pkgs.coreutils ];
+    runtimeInputs = [ config.networking.firewall.package pkgs.iproute2 pkgs.gnugrep pkgs.coreutils ];
     text = ''
       usage() {
-        echo "usage: devport open|close <port> [tcp|udp]   |   devport list" >&2
+        echo "usage: devport open|close <port> [tcp|udp]   |   devport list   |   devport check [--all]" >&2
         exit 2
       }
-      [ "$(id -u)" -eq 0 ] || exec sudo "$0" "$@"
+      # Store path, not the /run/current-system symlink: the NOPASSWD sudo
+      # rule for `check` below names it.
+      [ "$(id -u)" -eq 0 ] || exec sudo "$(readlink -f "$0")" "$@"
 
       cmd=''${1:-}
       case "$cmd" in
@@ -32,6 +43,9 @@ let
             "$ipt" -S nixos-fw | grep -- '--comment devport' || true
           done
           exit 0
+          ;;
+        check)
+          exec ${devportHelper}/bin/devport-helper check "''${@:2}"
           ;;
         open|close) ;;
         *) usage ;;
@@ -60,6 +74,30 @@ let
 in
 {
   environment.systemPackages = [ devport ];
+
+  # `devport check` only reads (listening sockets + firewall rules), so it
+  # needs no password; devport-watch calls it unattended.
+  security.sudo.extraRules = [{
+    users = [ config.local.user ];
+    commands = map (command: { inherit command; options = [ "NOPASSWD" ]; }) [
+      "${devport}/bin/devport check"
+      "${devport}/bin/devport check *"
+    ];
+  }];
+
+  systemd.user.services.devport-watch = {
+    description = "Ask before leaving a newly listening port blocked by the firewall";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    path = [ pkgs.iproute2 pkgs.libnotify ];
+    environment.DEVPORT_BIN = "${devport}/bin/devport";
+    serviceConfig = {
+      ExecStart = "${devportHelper}/bin/devport-helper watch";
+      Restart = "on-failure";
+      RestartSec = 10;
+    };
+  };
 
   networking.firewall = {
     enable = true;
