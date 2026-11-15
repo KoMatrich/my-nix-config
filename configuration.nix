@@ -186,6 +186,7 @@
     pkgs.git
     pkgs.git-lfs
     pkgs.gh
+    pkgs.glab # GitLab CLI; sign in with `glab auth login`
 
     pkgs.htop
     pkgs.iftop

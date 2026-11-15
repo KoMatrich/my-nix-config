@@ -36,11 +36,12 @@
       pkgs.aider-chat
       # T3 Code (t3.codes) desktop GUI for coding agents, from the t3code flake
       # overlay (see flake.nix; nixpkgs' t3code is old and needs an EOL Electron).
-      # The launcher bundles claude and gh on its PATH; sign in with `claude`
-      # and `gh auth login`. Codex is on upstream by default; we don't use it.
+      # The launcher bundles claude, gh and glab on its PATH; sign in with `claude`,
+      # `gh auth login` and `glab auth login`. Codex is on upstream by default; we don't use it.
       (pkgs.t3code-desktop.override {
         enableClaude = true;
         enableGitHub = true;
+        enableGitLab = true;
         enableCodex = false;
       })
       # T3 Code's device hub lazily runs `npm install agent-device@<ver>` into
