@@ -36,6 +36,7 @@
       ./apps/tailscale.nix
       ./apps/iphone.nix         # iPhone USB access + `iphone-backup` (USB/Wi-Fi)
       ./apps/llm.nix
+      ./apps/obs.nix            # OBS Studio screen + mic recording
 
       # GNOME by default; Hyprland as a boot-menu specialisation.
       ./desktop
