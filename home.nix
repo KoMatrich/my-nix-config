@@ -150,24 +150,6 @@
     programs.direnv.enable = true;
     programs.vscode = {
       enable = true;
-      # nixpkgs' vscode 1.144.0 (nixos-26.05) still rm's the ripgrep binary at
-      # node_modules/@vscode/ripgrep/bin/rg, but upstream moved it to
-      # node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/linux-x64/rg,
-      # so patchPhase dies with "rm: cannot remove ...". Retarget the path.
-      # The tarball also ships a non-executable copy at
-      # node_modules/@vscode/ripgrep-universal/bin/linux-x64/rg, and that is the
-      # one VS Code actually spawns (EACCES otherwise), so symlink it to the
-      # nixpkgs ripgrep as well.
-      # Drop this once nixpkgs fixes vscode/generic.nix.
-      package = pkgs.vscode.overrideAttrs (old: {
-        postPatch = (builtins.replaceStrings
-          [ "resources/app/node_modules/@vscode/ripgrep/bin/rg" ]
-          [ "resources/app/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/linux-x64/rg" ]
-          old.postPatch) + ''
-          rm resources/app/node_modules/@vscode/ripgrep-universal/bin/linux-x64/rg
-          ln -s ${pkgs.ripgrep}/bin/rg resources/app/node_modules/@vscode/ripgrep-universal/bin/linux-x64/rg
-        '';
-      });
     };
 
     # kitty: claude-notifications-go has full tab-level click-to-focus support
