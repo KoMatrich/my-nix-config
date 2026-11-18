@@ -147,6 +147,8 @@
       enableGitIntegration = true;
     };
 
+    programs.lazygit.enable = true;
+
     programs.direnv.enable = true;
     programs.vscode = {
       enable = true;
