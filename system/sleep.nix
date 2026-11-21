@@ -61,6 +61,15 @@ in
     HandleLidSwitchDocked = "ignore";
   };
 
+  # Closing the lid could switch on airplane mode (Wi-Fi + Bluetooth soft
+  # blocked). The HP firmware's airplane-key device (ACPI HPQ6001, "Wireless
+  # hotkeys" input, driver wireless_hotkey) sends KEY_RFKILL on some lid
+  # events; gsd-rfkill (GNOME) or the kernel's rfkill input handler (Hyprland)
+  # then toggles every radio. That key has no scancode keymap, so it can't be
+  # remapped with hwdb: the driver has to go. The cost is that the airplane
+  # hotkey (F12) stops working. Quick Settings still toggles airplane mode.
+  boot.blacklistedKernelModules = [ "wireless_hotkey" ];
+
   systemd.services.stay-awake = {
     description = "Block suspend while the CPU is busy or the lid is closed on AC";
     wantedBy = [ "multi-user.target" ];
