@@ -103,10 +103,7 @@ in
     enable = true;
 
     # TCP ports open to anything that can reach this host (LAN included).
-    allowedTCPPorts = [
-      3773 # t3code
-      9993 # zerotier-one
-    ];
+    # allowedTCPPorts = [ ];
 
     # allowedUDPPorts = [ ];
 
