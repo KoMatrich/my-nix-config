@@ -7,7 +7,12 @@
 # re-authorized in ZeroTier Central each time.
 
 { config, pkgs, ... }:
-
+let
+  zerotierPorts = {
+    secondary = 36505;
+    tertiary = 47204;
+  };
+in
 {
   services.zerotierone = {
     enable = true;
@@ -17,7 +22,24 @@
     joinNetworks = [
       "272f5eae1695d6e4"
     ];
+
+    # Besides the primary port (9993, opened by the module) ZeroTier listens
+    # on a secondary port (derived from the node address) and a tertiary one
+    # (randomly picked, used for UPnP/NAT-PMP mapping). Unpinned, the firewall
+    # dropped peers and roots reaching them directly over IPv6, so traffic
+    # got relayed. Pinned here to the values the node was already using and
+    # opened below. Written to /var/lib/zerotier-one/local.conf (an existing
+    # hand-edited one is backed up by the module).
+    localConf.settings = {
+      secondaryPort = zerotierPorts.secondary;
+      tertiaryPort = zerotierPorts.tertiary;
+    };
   };
+
+  networking.firewall.allowedUDPPorts = [
+    zerotierPorts.secondary
+    zerotierPorts.tertiary
+  ];
 
   environment.persistence."/persist".directories = [
     {

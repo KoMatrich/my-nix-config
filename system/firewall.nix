@@ -109,7 +109,9 @@ in
 
     # Dev server ports, reachable only over the overlay networks, i.e. from
     # your own authorized devices. `zt+` matches every ZeroTier interface.
-    interfaces."tailscale0".allowedTCPPorts = devPorts;
+    # T3 Code (3773) listens on 0.0.0.0 and drives an agent with shell
+    # access: reachable over Tailscale only, never the LAN or ZeroTier.
+    interfaces."tailscale0".allowedTCPPorts = devPorts ++ [ 3773 ];
     interfaces."zt+".allowedTCPPorts = devPorts;
 
     # Ethernet port shared via NetworkManager ("Share to other computers",
@@ -138,11 +140,14 @@ in
       # M-SEARCH to the multicast group 239.255.255.250:1900 and devices answer
       # by unicast from port 1900 to our ephemeral port. conntrack does not tie
       # a unicast answer to a multicast query, so without this they are
-      # dropped. Limited to the home LAN and to the ephemeral port range
+      # dropped. Limited to private (RFC 1918) source addresses, so it works
+      # on whichever LAN the laptop is on, and to the ephemeral port range
       # (net.ipv4.ip_local_port_range) so "source port 1900" cannot be used to
       # reach arbitrary local UDP services.
-      iptables -A nixos-fw -p udp -s 192.168.1.0/24 --sport 1900 \
-        --dport 32768:60999 -j nixos-fw-accept
+      for lan in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16; do
+        iptables -A nixos-fw -p udp -s "$lan" --sport 1900 \
+          --dport 32768:60999 -j nixos-fw-accept
+      done
     '';
 
     # Log packets refused by the firewall (kernel ring buffer / journal),
