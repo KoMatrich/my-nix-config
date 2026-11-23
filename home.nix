@@ -87,6 +87,7 @@
       pkgs.obsidian
 
       pkgs.libreoffice-qt
+      pkgs.onlyoffice-desktopeditors
       pkgs.hunspell
       pkgs.hunspellDicts.cs_CZ
       pkgs.hunspellDicts.uk_UA
