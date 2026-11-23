@@ -147,6 +147,9 @@ def check(argv):
 # ---- watch -----------------------------------------------------------------
 
 DEVPORT = os.environ.get("DEVPORT_BIN", "/run/current-system/sw/bin/devport")
+NEVER_OPEN_PORTS = {
+    int(port) for port in os.environ.get("DEVPORT_NEVER_OPEN", "").split()
+}
 IGNORE = os.path.join(
     os.environ.get("XDG_STATE_HOME", os.path.expanduser("~/.local/state")),
     "devport", "ignore")
@@ -222,7 +225,8 @@ def watch():
         skip = ignored()
         for row in json.loads(res.stdout):
             key = (row["proto"], row["port"])
-            if key not in new or row["status"] == "open":
+            if (key not in new or row["status"] == "open"
+                    or row["port"] in NEVER_OPEN_PORTS):
                 continue
             if skip & set(row["procs"]):
                 continue

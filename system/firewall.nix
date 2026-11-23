@@ -8,13 +8,15 @@
 #     reboot, rebuild or `devport close 3000`). `devport list` shows them.
 #   - `devport check` lists everything that is listening and whether the LAN
 #     can reach it. The devport-watch user service does the asking for you:
-#     when a program starts listening on a blocked TCP port, a notification
-#     offers "Open until reboot" (polkit prompt, then `devport open`).
+#     when a program starts listening on a TCP port that is not open to the LAN,
+#     a notification offers "Open until reboot" (polkit, then `devport open`).
 #     "Never ask for <program>" is remembered in ~/.local/state/devport/ignore.
+#     tailnetOnlyTCPPorts never trigger an offer, and `devport open` refuses them.
 #   - Permanently from the LAN: add the port to allowedTCPPorts below.
 { config, lib, pkgs, ... }:
 let
   devPorts = [ 3000 5174 ];
+  tailnetOnlyTCPPorts = [ 22 3773 ];
 
   devportHelper = pkgs.writers.writePython3Bin "devport-helper"
     { doCheck = false; }
@@ -56,6 +58,15 @@ let
       [[ "$port" =~ ^[0-9]+$ ]] && [ "$port" -ge 1 ] && [ "$port" -le 65535 ] || usage
       [[ "$proto" = tcp || "$proto" = udp ]] || usage
 
+      if [ "$cmd" = open ] && [ "$proto" = tcp ]; then
+        for protectedPort in ${lib.concatMapStringsSep " " toString tailnetOnlyTCPPorts}; do
+          if [ "$port" -eq "$protectedPort" ]; then
+            echo "devport: $proto/$port is restricted to tailscale0; refusing to open it on the LAN" >&2
+            exit 2
+          fi
+        done
+      fi
+
       rule=(nixos-fw -p "$proto" --dport "$port" -m comment --comment devport -j nixos-fw-accept)
       for ipt in iptables ip6tables; do
         if [ "$cmd" = open ]; then
@@ -92,6 +103,7 @@ in
     after = [ "graphical-session.target" ];
     path = [ pkgs.iproute2 pkgs.libnotify ];
     environment.DEVPORT_BIN = "${devport}/bin/devport";
+    environment.DEVPORT_NEVER_OPEN = lib.concatMapStringsSep " " toString tailnetOnlyTCPPorts;
     serviceConfig = {
       ExecStart = "${devportHelper}/bin/devport-helper watch";
       Restart = "on-failure";
@@ -112,7 +124,7 @@ in
     # SSH (22) accepts Linux password logins over Tailscale only. T3 Code
     # (3773) listens on 0.0.0.0 and drives an agent with shell access: both
     # are reachable over Tailscale only, never the LAN or ZeroTier.
-    interfaces."tailscale0".allowedTCPPorts = devPorts ++ [ 22 3773 ];
+    interfaces."tailscale0".allowedTCPPorts = devPorts ++ tailnetOnlyTCPPorts;
     interfaces."zt+".allowedTCPPorts = devPorts;
 
     # Ethernet port shared via NetworkManager ("Share to other computers",
