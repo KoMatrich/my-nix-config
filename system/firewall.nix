@@ -109,9 +109,10 @@ in
 
     # Dev server ports, reachable only over the overlay networks, i.e. from
     # your own authorized devices. `zt+` matches every ZeroTier interface.
-    # T3 Code (3773) listens on 0.0.0.0 and drives an agent with shell
-    # access: reachable over Tailscale only, never the LAN or ZeroTier.
-    interfaces."tailscale0".allowedTCPPorts = devPorts ++ [ 3773 ];
+    # SSH (22) accepts Linux password logins over Tailscale only. T3 Code
+    # (3773) listens on 0.0.0.0 and drives an agent with shell access: both
+    # are reachable over Tailscale only, never the LAN or ZeroTier.
+    interfaces."tailscale0".allowedTCPPorts = devPorts ++ [ 22 3773 ];
     interfaces."zt+".allowedTCPPorts = devPorts;
 
     # Ethernet port shared via NetworkManager ("Share to other computers",
