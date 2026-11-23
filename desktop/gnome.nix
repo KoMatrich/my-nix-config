@@ -11,48 +11,55 @@ let
   # find the new one with `dconf list /org/gnome/shell/extensions/gsconnect/device/`.
   gsconnectPhone = "fc4ca467_a6c5_46f4_8098_f2285679829a";
 
-  # "Night mode" for the phone's Run Command: backlight to minimum, notification
-  # banners off (Do Not Disturb), then panel off until the next mouse/keyboard input.
-  # GNOME 49+ moved brightness into Mutter, so it goes through
-  # org.gnome.Mutter.DisplayConfig instead of gsd-power. Brightness and DND stay
-  # as set after waking.
-  screenSleep = pkgs.writeShellApplication {
-    name = "screen-sleep";
-    runtimeInputs = [ pkgs.glib pkgs.gnugrep pkgs.gnused pkgs.coreutils ];
+  # Independent, non-blocking screen power commands for the phone. Mutter's
+  # PowerSaveMode controls the panel without changing the backlight, so "on"
+  # restores its previous brightness. No process or idle watch stays running.
+  screenPower = pkgs.writeShellApplication {
+    name = "screen-power";
+    runtimeInputs = [ pkgs.glib pkgs.gnused ];
     text = ''
       dc=(--session --dest org.gnome.Mutter.DisplayConfig --object-path /org/gnome/Mutter/DisplayConfig)
-      im=(--session --dest org.gnome.Mutter.IdleMonitor --object-path /org/gnome/Mutter/IdleMonitor/Core)
 
-      # 1. Every backlit panel to its minimum.
-      # Backlight = (serial, [{'connector': <'eDP-1'>, 'min': <1200>, ...}, ...])
-      bl=$(gdbus call "''${dc[@]}" --method org.freedesktop.DBus.Properties.Get \
-        org.gnome.Mutter.DisplayConfig Backlight)
-      serial=$(sed -E 's/^\(<\(uint32 ([0-9]+),.*/\1/' <<<"$bl")
-      while read -r entry; do
-        connector=$(sed -nE "s/.*'connector': <'([^']+)'>.*/\1/p" <<<"$entry")
-        min=$(sed -nE "s/.*'min': <(-?[0-9]+)>.*/\1/p" <<<"$entry")
-        [ -n "$connector" ] && [ -n "$min" ] || continue
-        gdbus call "''${dc[@]}" --method org.gnome.Mutter.DisplayConfig.SetBacklight \
-          "$serial" "$connector" "$min" >/dev/null
-      done < <(grep -oE '\{[^}]*\}' <<<"$bl")
+      get_power_mode() {
+        gdbus call "''${dc[@]}" --method org.freedesktop.DBus.Properties.Get \
+          org.gnome.Mutter.DisplayConfig PowerSaveMode \
+          | sed -nE 's/^\(<(int32 )?(-?[0-9]+)>,\)$/\2/p'
+      }
 
-      # 2. Do Not Disturb.
-      gsettings set org.gnome.desktop.notifications show-banners false
+      set_power_mode() {
+        local requested=$1 actual
+        gdbus call "''${dc[@]}" --method org.freedesktop.DBus.Properties.Set \
+          org.gnome.Mutter.DisplayConfig PowerSaveMode "<int32 $requested>" >/dev/null
+        actual=$(get_power_mode)
+        if [ "$actual" != "$requested" ]; then
+          printf 'screen-power: PowerSaveMode stayed at %s instead of %s\n' \
+            "$actual" "$requested" >&2
+          return 1
+        fi
+      }
 
-      # 3. Panel off; turn it back on at the first user input. Start listening
-      # before adding the watch so the signal cannot be missed.
-      coproc MON { exec gdbus monitor "''${im[@]}"; }
-      read -r _ <&"''${MON[0]}"  # "Monitoring signals ..." banner = subscribed
-      id=$(gdbus call "''${im[@]}" --method org.gnome.Mutter.IdleMonitor.AddUserActiveWatch \
-        | grep -oE '[0-9]+' | tail -n1)
-      gdbus call "''${dc[@]}" --method org.freedesktop.DBus.Properties.Set \
-        org.gnome.Mutter.DisplayConfig PowerSaveMode "<int32 3>" >/dev/null
-      while read -r line <&"''${MON[0]}"; do
-        [[ $line == *"WatchFired (uint32 $id,)"* ]] && break
-      done
-      kill "$MON_PID" 2>/dev/null || true
-      gdbus call "''${dc[@]}" --method org.freedesktop.DBus.Properties.Set \
-        org.gnome.Mutter.DisplayConfig PowerSaveMode "<int32 0>" >/dev/null
+      if [ "$#" -ne 1 ]; then
+        printf 'Usage: %s {on|off}\n' "$0" >&2
+        exit 2
+      fi
+
+      case "$1" in
+        on)
+          set_power_mode 0
+          ;;
+        off)
+          if [ "$(get_power_mode)" = "-1" ]; then
+            printf 'screen-power: panel power saving is unsupported\n' >&2
+            exit 1
+          fi
+
+          set_power_mode 3
+          ;;
+        *)
+          printf 'Usage: %s {on|off}\n' "$0" >&2
+          exit 2
+          ;;
+      esac
     '';
   };
 in
@@ -119,7 +126,7 @@ in
         # goes through immediately.
         pkgs.gnomeExtensions.steal-my-focus-window
 
-        screenSleep
+        screenPower
 
         (pkgs.writeShellScriptBin "toggle-touchpad" ''
           current=$(gsettings get org.gnome.desktop.peripherals.touchpad send-events)
@@ -185,7 +192,18 @@ in
               ]) ];
             in {
               command-list = [
-                (cmd "screen-sleep" "Screen off (dim + DND)" (lib.getExe screenSleep))
+                (cmd "screen-off" "Screen off" "${lib.getExe screenPower} off")
+                (cmd "screen-on" "Screen on" "${lib.getExe screenPower} on")
+                (cmd "power-performance" "Power: performance"
+                  "${pkgs.power-profiles-daemon}/bin/powerprofilesctl set performance")
+                (cmd "power-saver" "Power: power saver"
+                  "${pkgs.power-profiles-daemon}/bin/powerprofilesctl set power-saver")
+                (cmd "system-sleep" "Sleep"
+                  "${pkgs.systemd}/bin/systemctl suspend")
+                (cmd "system-restart" "Restart"
+                  "${pkgs.systemd}/bin/systemctl reboot")
+                (cmd "system-shutdown" "Shut down"
+                  "${pkgs.systemd}/bin/systemctl poweroff")
               ];
             };
         })
