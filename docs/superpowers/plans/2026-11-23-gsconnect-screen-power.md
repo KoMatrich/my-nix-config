@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace the stuck dim-and-DND command with reliable panel off/on controls, power-profile selection, and system sleep/restart/shutdown commands.
+**Goal:** Replace the stuck dim-and-DND command with reliable panel off/on controls, session lock/unlock, power-profile selection, and system sleep/restart/shutdown commands.
 
-**Architecture:** One small `screen-power` helper uses Mutter `PowerSaveMode`, validates real GNOME replies, and exits without creating a wake watcher or persistent state. Direct `powerprofilesctl` entries reuse the existing CPU profile stack; direct `systemctl` entries handle system actions. Seven declarative dconf entries replace the old screen-sleep entry.
+**Architecture:** One small `screen-power` helper uses Mutter `PowerSaveMode`, validates real GNOME replies, and exits without creating a wake watcher or persistent state. Direct `loginctl` commands control session locking, `powerprofilesctl` entries reuse the existing CPU profile stack, and `systemctl` entries handle system actions. Nine declarative dconf entries replace the old screen-sleep entry.
 
 **Tech Stack:** NixOS, Home Manager dconf/GVariant, Bash, GLib `gdbus`, power-profiles-daemon, systemd
 
@@ -27,10 +27,11 @@
 - Screen on must always be available and harmless without a prior screen off.
 - Repeated off/on commands must not accumulate processes or change brightness/DND.
 - Registered system actions must remain declarative and match their labels without being executed in tests.
+- Lock/unlock must use the calling GSConnect session, with no agent-session dependency or hardcoded ID in production commands.
 
 ---
 
-### Task 1: Screen power helper and seven GSConnect entries
+### Task 1: Screen power helper and nine GSConnect entries
 
 **Files:**
 - Modify: `desktop/gnome.nix`
@@ -39,7 +40,7 @@
 
 **Interfaces:**
 - Consumes: Mutter `PowerSaveMode` values 0 (on), 3 (off), and -1 (unsupported); power-profiles-daemon profiles `performance` and `power-saver`; systemctl actions `suspend`, `reboot`, and `poweroff`.
-- Produces: `screen-power off|on` and GSConnect IDs `screen-off`, `screen-on`, `power-performance`, `power-saver`, `system-sleep`, `system-restart`, and `system-shutdown`, with their corresponding user-facing labels.
+- Produces: `screen-power off|on` and GSConnect IDs `screen-off`, `screen-on`, `session-lock`, `session-unlock`, `power-performance`, `power-saver`, `system-sleep`, `system-restart`, and `system-shutdown`, with their corresponding user-facing labels.
 
 - [x] **Step 1: Reproduce missing commands and incorrect behavior**
 
@@ -59,8 +60,12 @@ Run `off-returns`, `remote-on`, `replace-off`, `unsupported-dpms`, `reverted-dpm
 
 - [x] **Step 5: Evaluate, build, and activate command settings**
 
-Run `nix flake check --override-input local-ci path:./ci/local-ci-stub` and `nh os build .`; expected success for BLACK-BOX. Evaluate all seven dconf entries, write that exact value to the current session, and read it back. Run only the safe `screen-power on` (already mode 0) against real Mutter and confirm mode 0.
+Run `nix flake check --override-input local-ci path:./ci/local-ci-stub` and `nh os build .`; expected success for BLACK-BOX. Evaluate all nine dconf entries, write that exact value to the current session, and read it back. Run only the safe `screen-power on` (already mode 0) against real Mutter and confirm mode 0.
 
 - [x] **Step 6: Review final state**
 
 `git diff --check` passes. No screen or idle-monitor processes remain. One-time recovery restored mode 0, 50% backlight, and notification banners; these are not actions retained in the helper. No destructive sleep, restart, shutdown, or profile-change command was run during testing.
+
+- [x] **Step 7: Add session lock and unlock**
+
+First require evaluated dconf to include `session-lock`, `session-unlock`, `/bin/loginctl lock-session`, and `/bin/loginctl unlock-session`; watch it fail on the original seven-command list. Add those direct commands with labels Lock and Unlock, so loginctl selects its calling GSConnect session. Re-run the evaluated check successfully. Confirm `loginctl` supports both verbs, invoke unlock only against session 1 while `LockedHint=no`, and confirm it stays no without executing a real lock. Commit and push directly to main only at the user's explicit request.

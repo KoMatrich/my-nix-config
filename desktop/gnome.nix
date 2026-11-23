@@ -194,6 +194,10 @@ in
               command-list = [
                 (cmd "screen-off" "Screen off" "${lib.getExe screenPower} off")
                 (cmd "screen-on" "Screen on" "${lib.getExe screenPower} on")
+                (cmd "session-lock" "Lock"
+                  "${pkgs.systemd}/bin/loginctl lock-session")
+                (cmd "session-unlock" "Unlock"
+                  "${pkgs.systemd}/bin/loginctl unlock-session")
                 (cmd "power-performance" "Power: performance"
                   "${pkgs.power-profiles-daemon}/bin/powerprofilesctl set performance")
                 (cmd "power-saver" "Power: power saver"
