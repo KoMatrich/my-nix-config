@@ -1,5 +1,14 @@
 { config, pkgs, local-ci, ... }:
 
+let
+  t3codeOptions = {
+    enableClaude = true;
+    enableGitHub = true;
+    enableGitLab = true;
+    enableCodex = false;
+  };
+  t3code = pkgs.t3code.override t3codeOptions;
+in
 {
     imports = [
       local-ci.homeModules.default
@@ -38,12 +47,10 @@
       # overlay (see flake.nix; nixpkgs' t3code is old and needs an EOL Electron).
       # The launcher bundles claude, gh and glab on its PATH; sign in with `claude`,
       # `gh auth login` and `glab auth login`. Codex is on upstream by default; we don't use it.
-      (pkgs.t3code-desktop.override {
-        enableClaude = true;
-        enableGitHub = true;
-        enableGitLab = true;
-        enableCodex = false;
-      })
+      (pkgs.t3code-desktop.override t3codeOptions)
+      # The headless CLI shares the desktop's release and provider tools. The
+      # manual-start-only service below uses it without launching Electron.
+      t3code
       # T3 Code's device hub lazily runs `npm install agent-device@<ver>` into
       # ~/.t3/tools/agent-device; without npm on PATH that spawn fails (NotFound)
       # and the Device panel reports "device hub not installed".
@@ -169,6 +176,24 @@
       enable = true;
       enableSshSupport = true;
       defaultCacheTtl = 1800;
+    };
+
+    # No Install.WantedBy: this is deliberately manual-start-only, so booting
+    # cannot resume sessions or spend tokens. Run `systemctl --user start t3code`
+    # when the headless server is wanted; `serve` never opens a browser or GUI.
+    # First close the desktop's local server or disable its Local environment:
+    # both share ~/.t3, and exit 78 means another server already owns it.
+    systemd.user.services.t3code = {
+      Unit.Description = "T3 Code headless server (manual start only)";
+      Service = {
+        ExecStart = "${pkgs.lib.getExe t3code} serve --host 0.0.0.0 --port 3773";
+        # Match the desktop server: the firewall exposes port 3773 only over
+        # Tailscale, not the LAN or ZeroTier (see system/firewall.nix).
+        Environment = "PATH=${config.home.path}/bin:/run/current-system/sw/bin";
+        Restart = "on-failure";
+        RestartPreventExitStatus = 78;
+        RestartSec = 5;
+      };
     };
     
     programs.firefox.enable = true;
