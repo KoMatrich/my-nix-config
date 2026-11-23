@@ -1,5 +1,9 @@
 { config, pkgs, local-ci, ... }:
 
+let
+  localOcr = pkgs.callPackage ./pkgs/local-ocr/package.nix { };
+in
+
 {
     imports = [
       local-ci.homeModules.default
@@ -20,6 +24,10 @@
     # module from users.users.<name> (configuration.nix).
 
     home.packages = [
+      # Offline PaddleOCR-VL image/PDF transcription for OpenCode's last-resort
+      # ocr_image/ocr_pdf tools below; the model loads on CPU only per invocation.
+      localOcr
+
       pkgs.vlc
       pkgs.digikam
       pkgs.discord
@@ -131,6 +139,16 @@
         '';
       })
     ];
+
+    # OpenCode auto-discovers this global plugin. Pin the executable to the
+    # same Nix package instead of relying on PATH in GUI/agent environments.
+    home.file.".config/opencode/plugins/local-ocr.js".text =
+      builtins.replaceStrings [ "__LOCAL_OCR__" ] [ "${localOcr}/bin/local-ocr" ]
+        (builtins.readFile ./pkgs/local-ocr/opencode-plugin.js);
+
+    # ~/.local/bin is already on PATH and, unlike /etc/profiles, is refreshed by
+    # standalone Home Manager activation too. Keep the manual CLI in step.
+    home.file.".local/bin/local-ocr".source = "${localOcr}/bin/local-ocr";
 
     programs.git = {
       package = pkgs.gitFull;
