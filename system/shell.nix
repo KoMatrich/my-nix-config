@@ -72,10 +72,13 @@ let
 
   # A `nh os switch` that exits 0 is not proof that anything happened: on
   # 2026-08-06 a shadowed `sudo env` let nh report success three times without
-  # ever creating a generation. So after running the command, compare what the
-  # flake evaluates to against what is actually running. This holds whether or
-  # not the rebuild changed anything, unlike a before/after comparison — a
-  # no-op switch legitimately leaves /run/current-system untouched.
+  # ever creating a generation. So after running the command, compare the
+  # system nh just built (its --out-link) against what is actually running.
+  # This holds whether or not the rebuild changed anything, unlike a
+  # before/after comparison — a no-op switch legitimately leaves
+  # /run/current-system untouched. (This used to re-run `nix eval` on the flake
+  # instead: a silent ~2 min full evaluation, never cached for a dirty tree,
+  # that made every rebuild look hung after "Adding configuration to bootloader".)
   #
   # nix/nh are pinned to the system closure: running this from inside a
   # `nix develop` shell must not pick up that shell's toolchain.
@@ -92,16 +95,19 @@ let
     fi
     ( while sleep 60; do sudo -n -v 2>/dev/null || exit; done ) &
     keepalive=$!
-    trap 'kill "$keepalive" 2>/dev/null' EXIT
+    outdir=$(mktemp -d)
+    trap 'kill "$keepalive" 2>/dev/null; rm -rf "$outdir"' EXIT
 
-    ${a.cmd} "$@"
+    ${a.cmd} --out-link "$outdir/result" "$@"
     status=$?
 
-    want=$(nix eval --raw '${config.programs.nh.flake}#nixosConfigurations.${config.networking.hostName}.config.system.build.toplevel' 2>/dev/null)
+    want=$(readlink -e "$outdir/result" 2>/dev/null)
     have=$(readlink -f /run/current-system)
 
+    # No result + non-zero status: nh already failed loudly, nothing to add.
     if [ -z "$want" ]; then
-      printf '\n\033[1;33m! %s: could not verify — flake evaluation failed\033[0m\n' '${a.name}' >&2
+      [ "$status" -ne 0 ] && exit "$status"
+      printf '\n\033[1;33m! %s: could not verify — nh produced no build result\033[0m\n' '${a.name}' >&2
       exit "$status"
     fi
 

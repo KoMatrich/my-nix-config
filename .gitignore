@@ -4,3 +4,8 @@ result-*
 
 # Claude Code worktrees (nested git checkouts)
 .claude/worktrees/
+
+# Python bytecode (devport.py / local_ocr.py get imported by tests and rewrite
+# these, which keeps the tree dirty and makes nix re-evaluate uncached)
+__pycache__/
+*.pyc
