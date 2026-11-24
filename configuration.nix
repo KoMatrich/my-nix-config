@@ -176,6 +176,9 @@
     description = "KoMatrich";
     extraGroups = [ "networkmanager" "wheel" "dialout" "input" ];
     hashedPasswordFile = "/persist/passwords/${config.local.user}";
+    # Start the user's systemd manager at boot (not only at login) so
+    # `systemd.user.services.t3code` (home.nix) runs in the background.
+    linger = true;
   };
   home-manager.users.${config.local.user} = import ./home.nix;
 

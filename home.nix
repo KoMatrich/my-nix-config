@@ -194,13 +194,14 @@ in
       defaultCacheTtl = 1800;
     };
 
-    # No Install.WantedBy: this is deliberately manual-start-only, so booting
-    # cannot resume sessions or spend tokens. Run `systemctl --user start t3code`
-    # when the headless server is wanted; `serve` never opens a browser or GUI.
-    # First close the desktop's local server or disable its Local environment:
-    # both share ~/.t3, and exit 78 means another server already owns it.
+    # Starts at boot (users.users.<name>.linger in configuration.nix keeps the
+    # user manager running without a login); `serve` never opens a browser or
+    # GUI. The desktop app shares ~/.t3 with this server: if its own local
+    # server was started first, exit 78 means another server already owns it,
+    # so use the desktop's Local environment off / connect it to this server.
     systemd.user.services.t3code = {
-      Unit.Description = "T3 Code headless server (manual start only)";
+      Unit.Description = "T3 Code headless server";
+      Install.WantedBy = [ "default.target" ];
       Service = {
         ExecStart = "${pkgs.lib.getExe t3code} serve --host 0.0.0.0 --port 3773";
         # Match the desktop server: the firewall exposes port 3773 only over
