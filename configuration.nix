@@ -174,7 +174,7 @@
   users.users.${config.local.user} = {
     isNormalUser = true;
     description = "KoMatrich";
-    extraGroups = [ "networkmanager" "wheel" "dialout" "input" ];
+    extraGroups = [ "networkmanager" "wheel" "dialout" ];
     hashedPasswordFile = "/persist/passwords/${config.local.user}";
     # Start the user's systemd manager at boot (not only at login) so
     # `systemd.user.services.t3code` (home.nix) runs in the background.
