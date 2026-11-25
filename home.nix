@@ -86,6 +86,29 @@ in
       pkgs.ast-grep
       pkgs.hyperfine
 
+      # Debugging/inspection tools for coding agents (and you): none of these
+      # were on PATH, so agents had to improvise with node/python one-offs.
+      pkgs.sqlite # inspect ~/.t3/userdata/state.sqlite and other app DBs
+      pkgs.websocat # poke WebSocket/CDP endpoints (Electron --remote-debugging-port)
+      pkgs.lsof # who holds a port/file (e.g. a lock on ~/.t3)
+      pkgs.file
+      pkgs.tree
+      pkgs.bind # dig/nslookup
+      pkgs.wget
+      pkgs.bat
+      pkgs.fzf
+      pkgs.tmux
+      pkgs.poppler-utils # pdftotext/pdftoppm
+      pkgs.ffmpeg-headless
+      pkgs.xdotool # drive XWayland/X11 windows (Electron apps run under X11 here)
+      # Nix/NixOS workflow: diff closures after a rebuild, browse what pulls in
+      # what, lint shell, format and language-serve .nix files.
+      pkgs.nvd
+      pkgs.nix-tree
+      pkgs.shellcheck
+      pkgs.nixfmt
+      pkgs.nil
+
       # gh copies one-time login codes with the first of these it finds.
       pkgs.wl-clipboard # Wayland: wl-copy / wl-paste
       pkgs.xclip # X11 and XWayland apps
