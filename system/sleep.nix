@@ -62,12 +62,26 @@ in
   };
 
   # Closing the lid could switch on airplane mode (Wi-Fi + Bluetooth soft
-  # blocked). The HP firmware's airplane-key device (ACPI HPQ6001, "Wireless
-  # hotkeys" input, driver wireless_hotkey) sends KEY_RFKILL on some lid
-  # events; gsd-rfkill (GNOME) or the kernel's rfkill input handler (Hyprland)
-  # then toggles every radio. That key has no scancode keymap, so it can't be
-  # remapped with hwdb: the driver has to go. The cost is that the airplane
-  # hotkey (F12) stops working. Quick Settings still toggles airplane mode.
+  # blocked): gsd-rfkill (GNOME) or the kernel's rfkill input handler
+  # (Hyprland) toggles every radio when it sees a radio key. Two sources:
+  #
+  #   1. The built-in keyboard. HP firmware emits scancodes d7/d8 on lid
+  #      events, and systemd's 60-keyboard.hwdb maps d7 to "wlan" on all HP
+  #      laptops. Upstream ignores both on the sibling 15-dk1* ("lid keys")
+  #      but has no entry for this 15-dk0*, so add one. The leading space on
+  #      the KEYBOARD_KEY lines is hwdb syntax.
+  services.udev.extraHwdb = ''
+    evdev:atkbd:dmi:bvn*:bvr*:bd*:br*:efr*:svnHP:pnHPPavilionGamingLaptop15-dk0*:*
+     KEYBOARD_KEY_d7=unknown
+     KEYBOARD_KEY_d8=unknown
+  '';
+
+  #   2. The firmware's airplane-key device (ACPI HPQ6001, driver
+  #      wireless_hotkey), blacklisted by an earlier attempt that suspected it
+  #      of sending KEY_RFKILL on lid events. Blacklisting it alone did not
+  #      stop the toggling, so it may be innocent. The cost of dropping it is
+  #      that the airplane hotkey (F12) stops working. Quick Settings still
+  #      toggles airplane mode.
   boot.blacklistedKernelModules = [ "wireless_hotkey" ];
 
   systemd.services.stay-awake = {
