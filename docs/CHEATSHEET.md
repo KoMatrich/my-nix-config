@@ -40,6 +40,18 @@ finished scrubs (ZED), SMART disk warnings (smartd), and a daily reminder when
 the USB HDD copy is older than 14 days (`zbackup-usb-age` shows its age).
 Test the path end-to-end: `sudo systemctl start notify-failure@test.service`.
 
+## Sleep and wake from the phone
+
+| What | How |
+|---|---|
+| Sleep | `pc-sleep` (in a terminal, or over SSH from the phone) |
+| Wake | Wake-on-LAN app on home Wi-Fi: MAC `00:68:eb:d8:13:7c`, broadcast `192.168.1.255`, port `9` |
+
+SSH from the phone needs Tailscale on: host `100.123.171.86`, port 22, your
+Linux user and password. Waking only works from the home network, with the
+Ethernet cable and charger plugged in. `pc-sleep` suspends even while
+`stay-awake` is blocking, so running jobs pause until you wake the machine.
+
 ## Dev server ports
 
 The firewall no longer opens dev ports on the LAN. 3000 and 5174 are always

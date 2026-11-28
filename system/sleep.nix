@@ -47,8 +47,42 @@ let
   # must not hand GNOME a window to suspend in, so releasing is deliberately
   # lazier than taking: 3 * 20s = a minute of genuine quiet.
   releaseAfter = 3;
+
+  # Deliberate suspend, meant to be run from the phone over SSH (Tailscale).
+  #
+  # --check-inhibitors=no: stay-awake below holds a block inhibitor with the
+  # lid closed on AC, which is exactly the overnight case.
+  # systemctl suspend, not rtcwake -m mem: the latter skips systemd's sleep
+  # path and with it the NVIDIA suspend/resume services.
+  # The 5s timer lets the SSH session exit cleanly before the network drops.
+  pc-sleep = pkgs.writeShellApplication {
+    name = "pc-sleep";
+    runtimeInputs = [ config.systemd.package pkgs.coreutils ];
+    text = ''
+      # Store path, not the /run/current-system symlink: the NOPASSWD sudo
+      # rule below names it.
+      [ "$(id -u)" -eq 0 ] || exec sudo -n "$(readlink -f "$0")"
+      systemd-run --quiet --collect --unit=pc-sleep \
+        --on-active=5s --timer-property=AccuracySec=1s \
+        systemctl suspend --check-inhibitors=no
+      echo "Going to sleep in 5 seconds."
+    '';
+  };
 in
 {
+  environment.systemPackages = [ pc-sleep ];
+
+  # No password: an SSH command from a phone app cannot answer a prompt.
+  security.sudo.extraRules = [{
+    users = [ config.local.user ];
+    commands = [{ command = "${pc-sleep}/bin/pc-sleep"; options = [ "NOPASSWD" ]; }];
+  }];
+
+  # Wake-on-LAN magic packet from the phone. A NetworkManager default rather
+  # than a per-connection setting, so it also covers a recreated "Wired
+  # connection 1". 64 = "magic". Needs the Ethernet cable and the charger.
+  networking.networkmanager.connectionConfig."ethernet.wake-on-lan" = 64;
+
   # Lid events themselves: never suspend, in any of the three cases systemd
   # distinguishes. HandleLidSwitchExternalPower and HandleLidSwitchDocked
   # inherit HandleLidSwitch when unset, but stating them makes it explicit

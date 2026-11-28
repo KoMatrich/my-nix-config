@@ -15,6 +15,12 @@
     settings.PasswordAuthentication = true;
   };
 
+  # Lets this machine's own key log in (T3 Code's "open in VS Code" goes over
+  # SSH). Clients try the key first; password login stays as the fallback.
+  users.users.${config.local.user}.openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMGN3T82tT0jUoxEEj5I6b1AUtDCMrx+1/w/joNkyF6Y komatrich@Black-Box"
+  ];
+
   environment.persistence."/persist" = {
     directories = [
       "/var/lib/tailscale"
